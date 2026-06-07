@@ -3,22 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>教培助手 · 真实风格反馈生成器｜真实文风优化版</title>
+    <title>教培助手 v3.0 · 真实风格反馈生成器</title>
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 <div class="container">
     <div style="margin-bottom: 16px;">
-        <h2 style="font-weight: 700; letter-spacing: -0.3px;">📝 教培助手 <span style="font-size:0.9rem;color:#64748b;">正式版2.0</span></h2>
+        <h2 style="font-weight: 700; letter-spacing: -0.3px;">📝 教培助手 <span style="font-size:0.9rem;color:#64748b;">v3.0</span></h2>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span id="connectionStatus" style="font-size:0.75rem;padding:3px 10px;border-radius:20px;background:#fee2e2;color:#dc2626;">🔴 后端未连接</span>
+            <a href="javascript:void(0)" onclick="document.getElementById('settingsModal').style.display='flex'" style="font-size:0.75rem;color:#2563eb;">⚙️ 服务器设置</a>
+        </div>
     </div>
 
-    <div class="api-config">
-        <div class="field-group" style="flex:3">
-            <label>🔑 DeepSeek API Key <span style="font-weight:normal;">(deepseek-chat)</span></label>
-            <input type="password" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-            <div class="hint">请使用您自己的 DeepSeek API Key</div>
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:24px;padding:24px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <h3 style="margin-bottom:16px;">⚙️ 服务器设置</h3>
+            <div class="field-group">
+                <label>🔑 DeepSeek API Key</label>
+                <input type="password" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+                <div class="hint">API Key 保存在服务器端，不会暴露给浏览器。</div>
+            </div>
+            <div class="field-group">
+                <label>🌐 后端地址</label>
+                <input type="text" id="serverUrlInput" value="http://127.0.0.1:5000" placeholder="http://127.0.0.1:5000">
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="small-btn" onclick="document.getElementById('settingsModal').style.display='none'" style="background:#e2e8f0;color:#334155;">取消</button>
+                <button class="small-btn" id="saveSettingsBtn" style="background:#2563eb;color:white;">💾 保存并验证</button>
+            </div>
+            <div id="settingsMsg" style="margin-top:10px;font-size:0.8rem;"></div>
         </div>
-        <button class="small-btn" id="saveApiKeyBtn">💾 保存密钥</button>
     </div>
 
     <!-- ① 学生信息 -->
@@ -296,7 +312,7 @@
 
 <!-- JS 模块（按依赖顺序加载） -->
 <script src="js/config.js"></script>
-<script src="js/storage.js"></script>
+<script src="js/api-client.js"></script>
 <script src="js/postprocess.js"></script>
 <script src="js/prompts.js"></script>
 <script src="js/api.js"></script>

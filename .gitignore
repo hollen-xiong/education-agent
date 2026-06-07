@@ -19,3 +19,9 @@ dist/
 
 # 日志
 *.log
+
+# 后端
+server/data/
+__pycache__/
+*.pyc
+*.pyo

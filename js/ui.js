@@ -1,13 +1,13 @@
 /**
  * ui.js — DOM 渲染、事件绑定、表单交互
- * 依赖：所有其他模块
+ * 依赖：所有其他模块 + api-client.js
  * 挂载：window.App.ui
  */
 (function () {
     "use strict";
     window.App = window.App || {};
     var C = window.App.config;
-    var S = window.App.storage;
+    var AC = window.App.apiClient;
     var ST = window.App.students;
     var PM = window.App.prompts;
     var API = window.App.api;
@@ -44,10 +44,17 @@
     }
 
     function loadLists() {
-        try { highlightsList = mergeDefaultItems(S.getHighlights(), C.DEFAULT_HIGHLIGHTS); } catch (e) { highlightsList = C.DEFAULT_HIGHLIGHTS.slice(); }
-        try { weakPointsList = mergeDefaultItems(S.getWeakPoints(), C.DEFAULT_WEAKPOINTS); } catch (e) { weakPointsList = C.DEFAULT_WEAKPOINTS.slice(); }
-        try { suggestionList = mergeDefaultItems(S.getSuggestions(), C.DEFAULT_SUGGESTIONS); } catch (e) { suggestionList = C.DEFAULT_SUGGESTIONS.slice(); }
-        try { encouragementsList = mergeDefaultItems(S.getEncouragements(), C.DEFAULT_ENCOURAGEMENTS); } catch (e) { encouragementsList = C.DEFAULT_ENCOURAGEMENTS.slice(); }
+        try {
+            AC.getHighlights().then(function (v) { highlightsList = mergeDefaultItems(v, C.DEFAULT_HIGHLIGHTS); MODULE.renderHighlights(); });
+            AC.getWeakPoints().then(function (v) { weakPointsList = mergeDefaultItems(v, C.DEFAULT_WEAKPOINTS); MODULE.renderWeakPoints(); });
+            AC.getSuggestions().then(function (v) { suggestionList = mergeDefaultItems(v, C.DEFAULT_SUGGESTIONS); MODULE.renderSuggestions(); });
+            AC.getEncouragements().then(function (v) { encouragementsList = mergeDefaultItems(v, C.DEFAULT_ENCOURAGEMENTS); MODULE.renderEncouragements(); });
+        } catch (e) {
+            highlightsList = C.DEFAULT_HIGHLIGHTS.slice();
+            weakPointsList = C.DEFAULT_WEAKPOINTS.slice();
+            suggestionList = C.DEFAULT_SUGGESTIONS.slice();
+            encouragementsList = C.DEFAULT_ENCOURAGEMENTS.slice();
+        }
     }
 
     // ========== 渲染函数 ==========
@@ -97,7 +104,7 @@
             removeSpan.onclick = function (e) {
                 e.stopPropagation();
                 highlightsList.splice(idx, 1);
-                S.saveHighlights(highlightsList);
+                AC.saveHighlights(highlightsList);
                 MODULE.renderHighlights();
             };
             label.appendChild(removeSpan);
@@ -118,7 +125,7 @@
             removeSpan.onclick = function (e) {
                 e.stopPropagation();
                 weakPointsList.splice(idx, 1);
-                S.saveWeakPoints(weakPointsList);
+                AC.saveWeakPoints(weakPointsList);
                 MODULE.renderWeakPoints();
             };
             label.appendChild(removeSpan);
@@ -151,7 +158,7 @@
             document.querySelectorAll("#suggestionTagsArea .remove").forEach(function (btn) {
                 btn.onclick = function () {
                     var idx = parseInt(btn.getAttribute("data-idx"));
-                    if (!isNaN(idx)) { suggestionList.splice(idx, 1); S.saveSuggestions(suggestionList); MODULE.renderSuggestions(); }
+                    if (!isNaN(idx)) { suggestionList.splice(idx, 1); AC.saveSuggestions(suggestionList); MODULE.renderSuggestions(); }
                 };
             });
         }
@@ -169,7 +176,7 @@
             removeSpan.onclick = function (e) {
                 e.stopPropagation();
                 encouragementsList.splice(idx, 1);
-                S.saveEncouragements(encouragementsList);
+                AC.saveEncouragements(encouragementsList);
                 MODULE.renderEncouragements();
             };
             div.appendChild(radio); div.appendChild(label); div.appendChild(removeSpan);
@@ -186,31 +193,28 @@
     function addHighlight() {
         var val = document.getElementById("newHighlightInput").value.trim();
         if (val && highlightsList.indexOf(val) < 0) {
-            highlightsList.push(val); S.saveHighlights(highlightsList); MODULE.renderHighlights();
+            highlightsList.push(val); AC.addHighlight(val); MODULE.renderHighlights();
             document.getElementById("newHighlightInput").value = "";
         } else alert("请输入有效优点");
     }
-
     function addWeakPoint() {
         var val = document.getElementById("newWeakInput").value.trim();
         if (val && weakPointsList.indexOf(val) < 0) {
-            weakPointsList.push(val); S.saveWeakPoints(weakPointsList); MODULE.renderWeakPoints();
+            weakPointsList.push(val); AC.addWeakPoint(val); MODULE.renderWeakPoints();
             document.getElementById("newWeakInput").value = "";
         } else alert("请输入有效缺点");
     }
-
     function addSuggestion() {
         var val = document.getElementById("newSuggestionInput").value.trim();
         if (val && suggestionList.indexOf(val) < 0) {
-            suggestionList.push(val); S.saveSuggestions(suggestionList); MODULE.renderSuggestions();
+            suggestionList.push(val); AC.addSuggestion(val); MODULE.renderSuggestions();
             document.getElementById("newSuggestionInput").value = "";
         } else alert("请输入改进方向");
     }
-
     function addEncouragement() {
         var val = document.getElementById("newEncouragementInput").value.trim();
         if (val && encouragementsList.indexOf(val) < 0) {
-            encouragementsList.push(val); S.saveEncouragements(encouragementsList); MODULE.renderEncouragements();
+            encouragementsList.push(val); AC.addEncouragement(val); MODULE.renderEncouragements();
             document.getElementById("newEncouragementInput").value = "";
         } else alert("请输入寄语");
     }
@@ -349,41 +353,68 @@
     }
 
     async function loadApiKey() {
-        // 先迁移旧版 key（如有）
-        await S.migrateApiKeyIfNeeded();
-        var k = await S.getApiKey();
+        var k = await AC.getApiKey();
         if (k) document.getElementById("apiKeyInput").value = k;
     }
 
-    async function saveApiKey() {
+    async function saveSettings() {
         var key = document.getElementById("apiKeyInput").value.trim();
-        if (!key) { alert("请输入密钥"); return; }
+        var serverUrl = document.getElementById("serverUrlInput").value.trim();
+        var msgEl = document.getElementById("settingsMsg");
+        var btn = document.getElementById("saveSettingsBtn");
+        var orig = btn ? btn.innerText : "保存";
 
-        var btn = document.getElementById("saveApiKeyBtn");
-        var original = btn ? btn.innerText : "保存";
         if (btn) { btn.innerText = "验证中..."; btn.disabled = true; }
+        if (msgEl) msgEl.innerText = "";
 
         try {
-            var result = await S.validateApiKey(key);
-            if (result.ok) {
-                await S.saveApiKey(key);
-                alert("✅ " + result.message + " (模型: " + C.DEEPSEEK_MODEL + ")");
-            } else {
-                alert(result.message);
+            if (serverUrl) AC.setBaseUrl(serverUrl);
+            if (key) {
+                var result = await AC.validateApiKey(key);
+                if (result.ok) {
+                    await AC.saveApiKey(key);
+                    if (msgEl) { msgEl.style.color = "#166534"; msgEl.innerText = "✅ " + result.message; }
+                } else {
+                    if (msgEl) { msgEl.style.color = "#dc2626"; msgEl.innerText = result.message; }
+                    if (btn) { btn.innerText = orig; btn.disabled = false; }
+                    return;
+                }
             }
+            if (msgEl) { msgEl.style.color = "#166534"; msgEl.innerText = "✅ 设置已保存（需重启后端以应用新 API Key）"; }
+            checkConnection();
         } catch (e) {
-            alert("保存失败：" + (e.message || "未知错误"));
+            if (msgEl) { msgEl.style.color = "#dc2626"; msgEl.innerText = "❌ " + (e.message || "未知错误"); }
         } finally {
-            if (btn) { btn.innerText = original; btn.disabled = false; }
+            if (btn) { btn.innerText = orig; btn.disabled = false; }
         }
     }
 
-    function clearFeedbackHistory() {
-        var history = S.getFeedbackHistory();
-        var count = history.length;
+    async function checkConnection() {
+        var statusEl = document.getElementById("connectionStatus");
+        if (!statusEl) return;
+        statusEl.innerText = "🟡 检测中...";
+        statusEl.style.background = "#fef3c7"; statusEl.style.color = "#92400e";
+        try {
+            var health = await AC.healthCheck();
+            if (health.ok) {
+                statusEl.innerHTML = "🟢 已连接";
+                statusEl.style.background = "#dcfce7"; statusEl.style.color = "#166534";
+            } else {
+                statusEl.innerHTML = "🔴 后端异常 (" + health.status + ")";
+                statusEl.style.background = "#fee2e2"; statusEl.style.color = "#dc2626";
+            }
+        } catch (e) {
+            statusEl.innerHTML = "🔴 后端未连接";
+            statusEl.style.background = "#fee2e2"; statusEl.style.color = "#dc2626";
+        }
+    }
+
+    async function clearFeedbackHistory() {
+        var history = await AC.getFeedbackHistory();
+        var count = Array.isArray(history) ? history.length : 0;
         if (count === 0) { alert("当前没有历史反馈记录"); return; }
-        if (confirm("确定清空最近" + count + "条历史反馈记录吗？清空后将不再用于重复检测。")) {
-            S.clearFeedbackHistory();
+        if (confirm("确定清空最近" + count + "条历史反馈记录吗？")) {
+            await AC.clearFeedbackHistory();
             alert("✅ 历史反馈记录已清空");
         }
     }
@@ -400,11 +431,11 @@
             if (!enabled) { targetSel.classList.add("disabled-select"); timeSel.classList.add("disabled-select"); }
             else { targetSel.classList.remove("disabled-select"); timeSel.classList.remove("disabled-select"); }
         }
-        S.saveGreetingSwitch(enabled);
+        AC.saveGreetingSwitch(enabled);
     }
 
-    function initGreetingSwitch() {
-        var saved = S.getGreetingSwitch();
+    async function initGreetingSwitch() {
+        var saved = await AC.getGreetingSwitch();
         var cb = document.getElementById("enableGreetingCheckbox");
         if (cb) {
             cb.checked = saved;
@@ -448,19 +479,18 @@
     function saveFeedbackHistoryEntry(feedback, formData) {
         var cleanText = PP.stripForHistory(feedback || "");
         if (!cleanText || cleanText.length < 30) return;
-        var item = {
+        AC.saveFeedbackHistoryEntry({
             time: Date.now(),
-            studentName: formData.studentName || "",
+            student_name: formData.studentName || "",
             subject: formData.subject || "",
             tone: PM.getToneMode(),
             scenes: PM.inferSceneTags(formData),
             text: cleanText
-        };
-        S.saveFeedbackHistoryEntry(item);
+        });
 
-        // 同时记录到学生档案的学习历史
+        // 记录到学生档案
         if (formData.studentName && formData.studentName !== "这位同学") {
-            S.addStudentSession(formData.studentName, {
+            AC.addStudentSession(formData.studentName, {
                 date: formData.date || "",
                 knowledge: formData.knowledge || "",
                 performance: cleanText.substring(0, 200),
@@ -471,12 +501,6 @@
                 tags: PM.inferSceneTags(formData).slice(0, 5)
             });
         }
-
-        // 容量检查，必要时自动清理
-        var report = S.getStorageReport();
-        if (report.status === "warn") {
-            console.warn("[storage] 用量接近上限：" + report.usedMB.toFixed(1) + "MB");
-        }
     }
 
     async function onGenerate() {
@@ -484,7 +508,7 @@
         var requiredReport = validateRequiredFields(formData);
         if (!requiredReport.ok) return;
 
-        var apiKey = await S.getApiKey();
+        var apiKey = await AC.getApiKey();
         if (!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
         var btn = document.getElementById("generateBtn");
         var resultDiv = document.getElementById("feedbackContent");
@@ -532,7 +556,7 @@
         var baseFormData = MODULE.getFormData();
         var requiredReport = validateQuickRequiredFields();
         if (!requiredReport.ok) return;
-        var apiKey = await S.getApiKey();
+        var apiKey = await AC.getApiKey();
         if (!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
 
         var formData = PM.buildQuickFormData(baseFormData);
@@ -637,7 +661,7 @@
     }
 
     async function reviseCurrentFeedback(type) {
-        var apiKey = await S.getApiKey();
+        var apiKey = await AC.getApiKey();
         if (!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
 
         var resultDiv = document.getElementById("feedbackContent");
@@ -714,7 +738,10 @@
         document.getElementById("addEncouragementBtn").onclick = addEncouragement;
 
         document.getElementById("generateBtn").onclick = onGenerate;
-        document.getElementById("saveApiKeyBtn").onclick = saveApiKey;
+        // 连接检测 + 设置弹窗
+        checkConnection();
+        var saveSettingsBtn = document.getElementById("saveSettingsBtn");
+        if (saveSettingsBtn) saveSettingsBtn.onclick = saveSettings;
         document.getElementById("copyFeedbackBtn").onclick = copyFeedback;
         document.getElementById("clearHistoryBtn").onclick = clearFeedbackHistory;
 

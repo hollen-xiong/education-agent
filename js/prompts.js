@@ -7,7 +7,7 @@
     "use strict";
     window.App = window.App || {};
     var C = window.App.config;
-    var S = window.App.storage;
+    var AC = window.App.apiClient;
     var PP = window.App.postprocess;
 
     var MODULE = {};
@@ -263,8 +263,8 @@
 
     // ========== 历史提示 ==========
 
-    MODULE.getHistoryPromptBlock = function (formData) {
-        var history = S.getFeedbackHistory();
+    MODULE.getHistoryPromptBlock = async function (formData) {
+        var history = await AC.getFeedbackHistory();
         var avoidItems = (function () {
             if (history.length < 3) return [];
             return C.HISTORY_PHRASE_CANDIDATES
@@ -287,7 +287,7 @@
 
     // ========== 主 Prompt 构建 ==========
 
-    MODULE.buildInitialMessages = function (formData) {
+    MODULE.buildInitialMessages = async function (formData) {
         var studentName = (formData && formData.studentName) || "这位同学";
         var date = formData && formData.date;
         var subject = (formData && formData.subject) || "科目";
@@ -330,7 +330,7 @@
         var maxWords = wordCountRange[1];
         var wordTarget = "正文总字数控制在" + minWords + "~" + maxWords + "字之间（只统计"教学内容、学生表现、改进建议"，不包含问候语、标题行和本周作业）。";
         var styleVariation = MODULE.getStyleVariation(formData);
-        var historyPrompt = MODULE.getHistoryPromptBlock(formData);
+        var historyPrompt = await MODULE.getHistoryPromptBlock(formData);
         var toneExampleBlock = MODULE.getToneExampleBlock(formData);
 
         var systemPrompt = "你是一位" + teacherRole + "，正在给家长写课后反馈。你的风格需要高度模仿一位有多年教学经验、说话直接、不爱说套话的老师。\n\n【核心风格要求】语言直接、简洁；像老师口述记录；允许直接指出问题；使用"我"第一人称；不要标准化分段；收尾简洁；允许口语化短句。\n\n【表达模式】\n" + expressionModeInstruction + "\n\n" + antiStiffInstruction + "\n\n" + realTeacherCorpusInstruction + "\n\n" + sceneWritingHints + "\n\n" + styleVariation + "\n\n" + historyPrompt + "\n\n【自然表达要求】\n1. 禁止使用生硬句式："倒是""这点不错""这点很好""公式默写倒是全对""整体来看""总体而言""存在一定问题"。\n2. 如果要表达"公式默写全对"，优先写成"公式默写这块没有问题，说明基础记忆是过关的"或"公式记忆这部分不用太担心"。\n3. 不要机械写成"优点+这点不错"。要写出优点背后的意义，或者直接接后续要求。\n4. 每次生成都要在不新增事实的前提下变换表达顺序和连接词，避免像复制粘贴。\n5. 不要把所有勾选项逐条罗列，优点最多展开2个，问题最多展开2个，其余可以合并概括。\n6. 学生表现段优先写成自然段，不要写成"第一、第二、第三"的清单。\n7. 同一件事只写一次，尤其是"下次课/后续会盯""基础分/稳定性""步骤规范/计算细节""课后任务/不要松懈"，不要前后换个说法重复一遍。\n8. 语句要像老师顺手发微信：可以写"能听懂，但自己做还不稳""这块先收一收""先把会的题做对""我暂时不太担心""要引起重视"，少写"说明其具备较好基础""反映出存在不足"这类评语腔。\n9. 宁可少写一点，也不要为了凑字反复解释同一个问题。每个事实说清楚即可，不要铺垫太多。\n10. 允许把老师的判断写出来，但必须有事实支撑；不要为了自然去编造"忘带笔记本、迟到、游戏、家长督促"等白名单外细节。\n\n【学科与年级适配】" + gradeHint + "\n\n【表扬条件】" + praiseInstruction + "\n\n【语气调节】" + toneInstruction + "\n\n【字数要求】" + wordTarget + "\n\n【事实铁律】反馈中出现的所有具体事实（如正确率、错题类型、行为表现、作业完成情况等）必须严格来自【事实白名单】。严禁编造任何不在白名单内的具体数字、题号、次数、迟到、未带资料等细节。如果白名单没有提供具体数据，只能使用概括性语言（如"这部分还需要巩固""计算细节要注意"）。\n\n【课上真实记录使用规则】\n- 课上真实记录最多4条，每条都是独立事实，不默认存在因果关系。\n- 可以把不同真实记录分散融入学生表现段，不必连续写在同一句里。\n- 除非用户明确写了"因为/所以/导致/因此"，否则不要用"所以、导致、因此"把两条记录强行连成因果。\n- 例如"期中考完有点飘"和"方法会了但算不出来"应分别表达为状态需要收回来、方法落地和计算还不稳，而不是揉成一句模板话。\n- 真实记录不是寄语，也不是必须原样出现；保留事实意思即可，表达要自然。\n\n【自动识别情景】" + sceneText + "\n请根据这些情景组织"学生表现"段，不要机械罗列优点和缺点；情景只用于确定写作重点，不能当作额外事实去编造细节。\n\n【下节课关注点】" + (hasNextFocus ? nextFocus : "未填写") + "\n若填写了下节课关注点，它只是"后续教学规划参考"，不是寄语，也不是固定尾句。\n写法要求：可以把它融入问题分析或后续训练安排里，用一句自然的话带过；不要求原文出现；不要连续写两句"下次课/后续/我会……"的同义提醒；如果正文里已经有近似表达，绝对不要再补原句。\n\n【固定结构】（正文目标" + minWords + "~" + maxWords + "字，不输出标题行！直接输出教学内容、学生表现等，不要输出"xxx课程反馈"作为独立一行。）\n教学内容：围绕核心知识点扩展" + teachingContentCount + "个紧密相关的子内容，" + teachingContentRange + "，不要写成教材目录。\n学生表现：占正文的主要部分，至少达到" + Math.floor(minWords * 0.52) + "字以上；自然段表达，不要机械罗列优缺点。若有寄语，只保留核心意思自然改写，不要把寄语当固定尾巴硬贴。\n" + (includeImprove ? "改进建议：25~45字，只针对白名单中的薄弱点，别重复学生表现里已经说过的话。\n" : "") + (hasHomework ? "本周作业：必须作为最后一行单独输出，格式固定为"本周作业：用户填写的作业"，不改写、不扩写、不并入学生表现，且不计入正文字数。\n" : "") + "\n【绝对禁止】\n1. 新增白名单外的具体错题次数、分数、迟到、作业未写等细节。\n2. 禁止套话如"家校配合""持续赋能"。\n3. 禁止机械列优点/缺点清单。\n4. 禁止输出标题行（如"xx月xx日xx课程反馈"单独一行）。\n\n【人称代词】统一使用"" + pronoun + ""。\n\n【风格示例调用规则】当前选择什么语气，就只参考对应语气的示例，不要把三种语气混在一起平均化。\n" + toneExampleBlock + "\n\n【语气差异要求】\n- 鼓励模式：优先写进步、状态、主动性和可保持的地方，问题放在后半段，语气温和但不虚夸。\n- 平和模式：优点和问题都写，语气客观，像日常给家长同步情况。\n- 批评模式：优先写主要问题和后果，语气更直接，最后给具体要求。\n- 不管哪种语气，都必须严格基于事实白名单，不能为了语气效果新增事实。\n\n【写作核心】教学内容段落必须基于"" + knowledge + ""扩展出" + teachingContentCount + "个紧密相关的子知识点，控制在" + teachingContentRange + "；学生表现段要像真实老师微信反馈，不能僵硬。直接输出反馈正文，不要任何解释。";
@@ -341,7 +341,7 @@
             systemPrompt += "\n【格式】绝对禁止输出任何标题行（如"x月x日xx课程反馈"），直接输出"教学内容："、"学生表现："等段落。";
         }
 
-        var userPrompt = MODULE.buildFactPrompt(formData) + "\n【本次生成要求】\n不输出标题行，直接输出教学内容、学生表现等。\n学生：" + studentName + "（" + gender + "）\n年级：" + grade + " | 科目：" + subject + "\n教学内容核心：" + knowledge + " -> 扩展" + teachingContentCount + "个左右子知识，" + teachingContentRange + "，不要写成教材目录。\n表达模式：" + (expressionMode === "vivid" ? "生动：表达更顺一些，但不要作文腔" : "真实：朴素直接，像老师微信") + "\n优点：" + (selectedHighlights.join("、") || "无明显突出优点") + "\n薄弱点：" + (selectedWeak.join("、") || "无明确薄弱点") + "\n真实记录（最多4条独立事实，不能强行合并成因果）：\n" + realNotesText + "\n自动识别情景：" + sceneText + "\n" + sceneWritingHints + "\n" + (hasNextFocus ? "下节课关注点：" + nextFocus + "（这是后续教学规划参考，不是寄语；可以改写，不要求原文出现；如果正文已有同义表达，不要再补原句）" : "下节课关注点：未填写，不要编造") + "\n正确率：" + correctnessText + "\n" + (includeImprove ? "改进方向：" + selectedSuggestion : "不生成改进建议") + "\n" + (selectedEncouragement ? "寄语参考：" + selectedEncouragement + "（保留核心意思即可，可以自然改写；不要硬贴在学生表现段末尾；不要和前文同义重复）" : "") + "\n" + (hasHomework ? "作业：" + homework + "（必须单独成最后一行，固定写成"本周作业：" + homework + ""，不要并入学生表现，也不要改写）" : "不生成作业段落") + "\n" + (hasNextFocus ? "下节课关注点不要单独成段，不要当寄语，不要固定放在最后；如果已经自然写进计划，就不要再写第二遍。" : "不写下节课关注点") + "\n当前语气模式：" + MODULE.getToneMode() + "。只模仿当前语气对应的示例，不要把鼓励、平和、批评三种语气平均化。\n" + MODULE.getHistoryPromptBlock(formData) + "\n学生表现至少" + Math.floor(minWords * 0.52) + "字。\n不要写"公式默写倒是全对，这点不错/很好""整体来看""此外学生""存在一定问题""这一点先保持"等生硬句；如果出现公式默写全对，改写成"公式默写这块没有问题，说明基础记忆是过关的"。所有语气模式都要自然。\n输出完整反馈" + (!enableGreeting ? "（第一行必须是标题行）" : "（不要标题行）") + "。";
+        var userPrompt = MODULE.buildFactPrompt(formData) + "\n【本次生成要求】\n不输出标题行，直接输出教学内容、学生表现等。\n学生：" + studentName + "（" + gender + "）\n年级：" + grade + " | 科目：" + subject + "\n教学内容核心：" + knowledge + " -> 扩展" + teachingContentCount + "个左右子知识，" + teachingContentRange + "，不要写成教材目录。\n表达模式：" + (expressionMode === "vivid" ? "生动：表达更顺一些，但不要作文腔" : "真实：朴素直接，像老师微信") + "\n优点：" + (selectedHighlights.join("、") || "无明显突出优点") + "\n薄弱点：" + (selectedWeak.join("、") || "无明确薄弱点") + "\n真实记录（最多4条独立事实，不能强行合并成因果）：\n" + realNotesText + "\n自动识别情景：" + sceneText + "\n" + sceneWritingHints + "\n" + (hasNextFocus ? "下节课关注点：" + nextFocus + "（这是后续教学规划参考，不是寄语；可以改写，不要求原文出现；如果正文已有同义表达，不要再补原句）" : "下节课关注点：未填写，不要编造") + "\n正确率：" + correctnessText + "\n" + (includeImprove ? "改进方向：" + selectedSuggestion : "不生成改进建议") + "\n" + (selectedEncouragement ? "寄语参考：" + selectedEncouragement + "（保留核心意思即可，可以自然改写；不要硬贴在学生表现段末尾；不要和前文同义重复）" : "") + "\n" + (hasHomework ? "作业：" + homework + "（必须单独成最后一行，固定写成"本周作业：" + homework + ""，不要并入学生表现，也不要改写）" : "不生成作业段落") + "\n" + (hasNextFocus ? "下节课关注点不要单独成段，不要当寄语，不要固定放在最后；如果已经自然写进计划，就不要再写第二遍。" : "不写下节课关注点") + "\n当前语气模式：" + MODULE.getToneMode() + "。只模仿当前语气对应的示例，不要把鼓励、平和、批评三种语气平均化。\n" + await MODULE.getHistoryPromptBlock(formData) + "\n学生表现至少" + Math.floor(minWords * 0.52) + "字。\n不要写"公式默写倒是全对，这点不错/很好""整体来看""此外学生""存在一定问题""这一点先保持"等生硬句；如果出现公式默写全对，改写成"公式默写这块没有问题，说明基础记忆是过关的"。所有语气模式都要自然。\n输出完整反馈" + (!enableGreeting ? "（第一行必须是标题行）" : "（不要标题行）") + "。";
 
         return [
             { role: "system", content: systemPrompt },

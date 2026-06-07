@@ -7,7 +7,7 @@
     "use strict";
     window.App = window.App || {};
     var C = window.App.config;
-    var S = window.App.storage;
+    var AC = window.App.apiClient;
 
     var MODULE = {};
 
@@ -103,8 +103,8 @@
         }, 0);
     }
 
-    function getHistoryAvoidPhrases() {
-        var history = S.getFeedbackHistory();
+    async function getHistoryAvoidPhrases() {
+        var history = await AC.getFeedbackHistory();
         if (history.length < 3) return [];
         return C.HISTORY_PHRASE_CANDIDATES
             .map(function (phrase) { return { phrase: phrase, count: countPhraseInHistory(phrase, history) }; })
@@ -138,8 +138,8 @@
         return inter / Math.max(keysA.length, keysB.length);
     }
 
-    MODULE.getHistoricalRepeatReport = function (feedback, formData) {
-        var history = S.getFeedbackHistory();
+    MODULE.getHistoricalRepeatReport = async function (feedback, formData) {
+        var history = await AC.getFeedbackHistory();
         if (history.length < 2) {
             return { severe: false, message: "历史样本较少，暂不做强重复判断", overusedPhrases: [], similarSentences: [] };
         }

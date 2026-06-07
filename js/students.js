@@ -1,184 +1,93 @@
 /**
- * students.js — 学生记忆系统（增删改查、拼音排序、下拉补全）
- * 依赖：config.js, storage.js
+ * students.js — 学生记忆系统（API 后端版本）
+ * 依赖：config.js, api-client.js
  * 挂载：window.App.students
  */
 (function () {
     "use strict";
     window.App = window.App || {};
     var C = window.App.config;
-    var S = window.App.storage;
+    var AC = window.App.apiClient;
 
     var MODULE = {};
-
-    // 运行时状态
     var dropdownActiveIndex = -1;
     var dropdownItems = [];
 
     // ========== 姓名规范化 ==========
-
     function normalizeStudentName(name) {
         return String(name || "").replace(/\s+/g, "").trim();
     }
 
     // ========== 拼音排序 ==========
-
-    function getStudentSurnameInfo(name) {
-        var cleanName = normalizeStudentName(name);
-        if (!cleanName) return { surname: "", pinyin: "" };
-
+    function getPinyinFromName(name) {
+        var clean = normalizeStudentName(name);
+        if (!clean) return "";
         var compoundKeys = Object.keys(C.STUDENT_COMPOUND_SURNAME_PINYIN);
-        var compoundSurname = null;
         for (var i = 0; i < compoundKeys.length; i++) {
-            if (cleanName.indexOf(compoundKeys[i]) === 0) {
-                compoundSurname = compoundKeys[i];
-                break;
+            if (clean.indexOf(compoundKeys[i]) === 0) {
+                return C.STUDENT_COMPOUND_SURNAME_PINYIN[compoundKeys[i]] || "";
             }
         }
-        if (compoundSurname) {
-            return { surname: compoundSurname, pinyin: C.STUDENT_COMPOUND_SURNAME_PINYIN[compoundSurname] };
-        }
-
-        var surname = cleanName.charAt(0);
-        return { surname: surname, pinyin: C.STUDENT_SURNAME_PINYIN[surname] || "" };
+        return C.STUDENT_SURNAME_PINYIN[clean.charAt(0)] || clean.charAt(0);
     }
 
-    function compareStudentProfilesBySurnamePinyin(a, b) {
-        var infoA = getStudentSurnameInfo(a && a.name || "");
-        var infoB = getStudentSurnameInfo(b && b.name || "");
+    // ========== CRUD ==========
 
-        if (infoA.pinyin && infoB.pinyin && infoA.pinyin !== infoB.pinyin) {
-            return infoA.pinyin.localeCompare(infoB.pinyin, "en", { sensitivity: "base" });
-        }
-
-        var surnameCompare = C.STUDENT_PINYIN_COLLATOR.compare(infoA.surname || "", infoB.surname || "");
-        if (surnameCompare !== 0) return surnameCompare;
-
-        var nameCompare = C.STUDENT_PINYIN_COLLATOR.compare(a && a.name || "", b && b.name || "");
-        if (nameCompare !== 0) return nameCompare;
-
-        return ((b && b.updatedAt) || 0) - ((a && a.updatedAt) || 0);
-    }
-
-    function sortStudentProfilesBySurnamePinyin(profiles) {
-        return (Array.isArray(profiles) ? profiles.slice() : []).sort(compareStudentProfilesBySurnamePinyin);
-    }
-
-    // ========== 学生档案 CRUD ==========
-
-    MODULE.getProfiles = function () {
+    MODULE.getProfiles = async function () {
         try {
-            var raw = S.getStudents();
+            var raw = await AC.getStudents();
             if (!Array.isArray(raw)) return [];
-            return sortStudentProfilesBySurnamePinyin(
-                raw.filter(function (item) { return item && normalizeStudentName(item.name); })
-                    .map(function (item) {
-                        return {
-                            name: normalizeStudentName(item.name),
-                            grade: item.grade || "初中",
-                            gender: item.gender || "男",
-                            subject: item.subject || "数学",
-                            createdAt: item.createdAt || item.updatedAt || Date.now(),
-                            updatedAt: item.updatedAt || Date.now()
-                        };
-                    })
-            );
-        } catch (e) {
-            return [];
-        }
+            return raw;
+        } catch (e) { return []; }
     };
 
-    MODULE.saveProfiles = function (profiles) {
-        var cleaned = [];
-        var seen = {};
-        (Array.isArray(profiles) ? profiles : []).forEach(function (item) {
-            var name = normalizeStudentName(item && item.name);
-            if (!name || seen[name]) return;
-            seen[name] = true;
-            cleaned.push({
-                name: name,
-                grade: item.grade || "初中",
-                gender: item.gender || "男",
-                subject: item.subject || "数学",
-                createdAt: item.createdAt || Date.now(),
-                updatedAt: item.updatedAt || Date.now()
-            });
-        });
-        S.saveStudents(sortStudentProfilesBySurnamePinyin(cleaned).slice(0, 300));
+    MODULE.saveProfiles = async function (profiles) {
+        return await AC.saveStudents(profiles);
     };
 
-    MODULE.findProfile = function (name) {
-        var normalized = normalizeStudentName(name);
-        if (!normalized) return null;
-        var profiles = MODULE.getProfiles();
-        for (var i = 0; i < profiles.length; i++) {
-            if (normalizeStudentName(profiles[i].name) === normalized) return profiles[i];
-        }
-        return null;
+    MODULE.findProfile = async function (name) {
+        return await AC.findStudent(name);
     };
 
     // ========== 表单操作 ==========
-
     function setSelectValueIfExists(id, value) {
         var el = document.getElementById(id);
         if (!el || !value) return;
-        var exists = false;
         var options = el.options || [];
         for (var i = 0; i < options.length; i++) {
-            if (options[i].value === value) { exists = true; break; }
+            if (options[i].value === value) return (el.value = value);
         }
-        if (exists) el.value = value;
     }
 
-    MODULE.applyProfileToForm = function (profile) {
+    MODULE.applyProfileToForm = async function (profile) {
         if (!profile) return;
         var nameInput = document.getElementById("studentName");
         if (nameInput) nameInput.value = profile.name || "";
         setSelectValueIfExists("studentGender", profile.gender);
         setSelectValueIfExists("grade", profile.grade);
         setSelectValueIfExists("subject", profile.subject);
-        // 学生备注
         var notesEl = document.getElementById("studentNotes");
         if (notesEl) notesEl.value = profile.notes || "";
-        // 渲染学习历史
         MODULE.renderSessionHistory(profile.name);
         updateStudentMemoryButtons();
         MODULE.renderDropdown();
     };
 
-    function getStudentDropdownProfiles() {
+    async function getStudentDropdownProfiles() {
         var input = document.getElementById("studentName");
         var keyword = normalizeStudentName(input ? input.value : "");
-        var profiles = MODULE.getProfiles();
-        if (!keyword || MODULE.findProfile(keyword)) return profiles;
-
-        var matched = profiles.filter(function (profile) {
-            return normalizeStudentName(profile.name).indexOf(keyword) >= 0;
+        var profiles = await MODULE.getProfiles();
+        if (!keyword || await MODULE.findProfile(keyword)) return profiles;
+        return profiles.filter(function (p) {
+            return normalizeStudentName(p.name).indexOf(keyword) >= 0;
         });
-        return matched.length ? matched : profiles;
     }
 
     // ========== 下拉 UI ==========
-
-    function setDropdownActiveIndex(index) {
-        var dropdown = document.getElementById("studentMemoryDropdown");
-        if (!dropdown || !dropdownItems.length) return;
-        var max = dropdownItems.length - 1;
-        dropdownActiveIndex = Math.max(0, Math.min(index, max));
-        var items = dropdown.querySelectorAll(".student-memory-item");
-        items.forEach(function (item, idx) {
-            var active = idx === dropdownActiveIndex;
-            if (active) item.classList.add("active");
-            else item.classList.remove("active");
-            item.setAttribute("aria-selected", active ? "true" : "false");
-            if (active) item.scrollIntoView({ block: "nearest" });
-        });
-    }
-
-    MODULE.renderDropdown = function () {
+    MODULE.renderDropdown = async function () {
         var dropdown = document.getElementById("studentMemoryDropdown");
         if (!dropdown) return;
-        var profiles = getStudentDropdownProfiles();
+        var profiles = await getStudentDropdownProfiles();
         dropdownItems = profiles;
         dropdownActiveIndex = profiles.length ? 0 : -1;
         dropdown.innerHTML = "";
@@ -205,36 +114,46 @@
 
             var metaSpan = document.createElement("span");
             metaSpan.className = "student-memory-meta";
-            var sessionCount = (profile.sessions && profile.sessions.length) ? profile.sessions.length + "次课" : "";
-            var tags = (profile.tags && profile.tags.length) ? " " + profile.tags.slice(0, 2).map(function(t) { return "#" + t; }).join(" ") : "";
+            var sessionCount = (profile.session_count) ? profile.session_count + "次课" : "";
+            var tags = (profile.tags && profile.tags.length) ? " " + profile.tags.slice(0, 2).map(function (t) { return "#" + t; }).join(" ") : "";
             metaSpan.textContent = [profile.grade, profile.gender, profile.subject, sessionCount, tags].filter(Boolean).join("｜");
 
             item.appendChild(nameSpan);
             item.appendChild(metaSpan);
-
             item.addEventListener("mousedown", function (e) { e.preventDefault(); });
             item.addEventListener("mouseenter", function () { setDropdownActiveIndex(index); });
             item.addEventListener("click", function () {
                 MODULE.applyProfileToForm(profile);
                 hideDropdown();
-                var nameInput = document.getElementById("studentName");
-                if (nameInput) nameInput.focus();
+                var ni = document.getElementById("studentName");
+                if (ni) ni.focus();
             });
-
             dropdown.appendChild(item);
         });
     };
 
-    function renderStudentMemoryList() {
+    function setDropdownActiveIndex(index) {
+        var dropdown = document.getElementById("studentMemoryDropdown");
+        if (!dropdown || !dropdownItems.length) return;
+        dropdownActiveIndex = Math.max(0, Math.min(index, dropdownItems.length - 1));
+        var items = dropdown.querySelectorAll(".student-memory-item");
+        items.forEach(function (item, idx) {
+            var active = idx === dropdownActiveIndex;
+            if (active) item.classList.add("active"); else item.classList.remove("active");
+            item.setAttribute("aria-selected", active ? "true" : "false");
+            if (active) item.scrollIntoView({ block: "nearest" });
+        });
+    }
+
+    async function renderStudentMemoryList() {
         var listEl = document.getElementById("studentMemoryList");
         if (listEl) {
             listEl.innerHTML = "";
-            MODULE.getProfiles().forEach(function (profile) {
+            var profiles = await MODULE.getProfiles();
+            profiles.forEach(function (profile) {
                 var option = document.createElement("option");
                 option.value = profile.name;
-                var label = [profile.grade, profile.gender, profile.subject].filter(Boolean).join("｜");
-                option.label = label;
-                option.textContent = label;
+                option.textContent = [profile.grade, profile.gender, profile.subject].filter(Boolean).join("｜");
                 listEl.appendChild(option);
             });
         }
@@ -259,17 +178,8 @@
         input.setAttribute("aria-expanded", "false");
     }
 
-    function handleStudentNameMemoryChange() {
-        var input = document.getElementById("studentName");
-        var profile = MODULE.findProfile(input ? input.value : "");
-        if (profile) MODULE.applyProfileToForm(profile);
-        else updateStudentMemoryButtons();
-        MODULE.renderDropdown();
-    }
-
     // ========== 保存 & 删除 ==========
-
-    MODULE.upsertProfile = function (showAlert) {
+    MODULE.upsertProfile = async function (showAlert) {
         var name = normalizeStudentName((document.getElementById("studentName") || {}).value || "");
         if (!name || name === "这位同学") {
             if (showAlert) alert("请输入学生姓名后再保存");
@@ -279,130 +189,103 @@
         var grade = (document.getElementById("grade") || {}).value || "初中";
         var subject = (document.getElementById("subject") || {}).value || "数学";
         var notes = (document.getElementById("studentNotes") || {}).value || "";
-        var profiles = MODULE.getProfiles();
-        var idx = -1;
-        for (var i = 0; i < profiles.length; i++) {
-            if (normalizeStudentName(profiles[i].name) === name) { idx = i; break; }
-        }
-        var now = Date.now();
+
+        // 保留已有 sessions 和 tags
+        var existing = await MODULE.findProfile(name);
         var profile = {
-            name: name,
-            gender: gender,
-            grade: grade,
-            subject: subject,
-            notes: notes,
-            sessions: idx >= 0 ? (profiles[idx].sessions || []) : [],
-            tags: idx >= 0 ? (profiles[idx].tags || []) : [],
-            createdAt: idx >= 0 ? profiles[idx].createdAt : now,
-            updatedAt: now
+            name: name, gender: gender, grade: grade, subject: subject, notes: notes,
+            tags: existing ? (existing.tags || []) : [],
         };
-        if (idx >= 0) profiles.splice(idx, 1);
-        profiles.push(profile);
-        MODULE.saveProfiles(profiles);
-        renderStudentMemoryList();
+
+        await AC.saveStudents([profile]);
+        await renderStudentMemoryList();
         if (showAlert) alert("✅ 已保存学生：" + name + "（" + grade + "｜" + gender + "｜" + subject + "）");
         MODULE.renderSessionHistory(name);
         return true;
     };
 
-    MODULE.deleteProfile = function () {
+    MODULE.deleteProfile = async function () {
         var name = normalizeStudentName((document.getElementById("studentName") || {}).value || "");
-        var profile = MODULE.findProfile(name);
+        var profile = await MODULE.findProfile(name);
         if (!profile) { alert("当前姓名还没有保存记录"); return; }
-        if (!confirm("确定删除"" + profile.name + ""的学生记忆吗？\n（包含 " + ((profile.sessions && profile.sessions.length) || 0) + " 条学习记录）")) return;
-        var profiles = MODULE.getProfiles().filter(function (item) {
-            return normalizeStudentName(item.name) !== normalizeStudentName(profile.name);
-        });
-        MODULE.saveProfiles(profiles);
-        renderStudentMemoryList();
-        MODULE.renderSessionHistory("");
-        alert("✅ 已删除该学生记忆");
+        var sc = profile.session_count || 0;
+        if (!confirm("确定删除"" + profile.name + ""的学生记忆吗？\n（包含 " + sc + " 条学习记录）")) return;
+
+        try {
+            await fetch("http://127.0.0.1:5000/api/students/" + profile.id, { method: "DELETE" });
+            await renderStudentMemoryList();
+            MODULE.renderSessionHistory("");
+            alert("✅ 已删除该学生记忆");
+        } catch (e) {
+            alert("删除失败：" + e.message);
+        }
     };
 
-    // ========== 学习历史渲染 ==========
+    async function updateStudentMemoryButtons() {
+        var deleteBtn = document.getElementById("deleteStudentBtn");
+        if (!deleteBtn) return;
+        var name = (document.getElementById("studentName") || {}).value || "";
+        var profile = await MODULE.findProfile(name);
+        deleteBtn.disabled = !profile;
+    }
 
-    MODULE.renderSessionHistory = function (studentName) {
+    // ========== 学习历史渲染 ==========
+    MODULE.renderSessionHistory = async function (studentName) {
         var container = document.getElementById("studentSessionHistory");
         if (!container) return;
-        var data = S.getStudentSessions(studentName);
-        if (!data || !data.sessions.length) {
+        var data = await AC.getStudentSessions(studentName);
+        if (!data || !data.sessions || !data.sessions.length) {
             container.innerHTML = '<div class="session-history-empty">暂无该学生的学习记录，生成反馈后会自动记录。</div>';
             return;
         }
 
-        var recent = data.sessions.slice(-5).reverse();
+        var recent = data.sessions.slice(0, 5);
         var tagsHtml = "";
         if (data.profile && data.profile.tags && data.profile.tags.length) {
             tagsHtml = '<div class="session-tags">' +
-                data.profile.tags.map(function (t) {
-                    return '<span class="session-tag">#' + t + '</span>';
-                }).join("") +
+                data.profile.tags.map(function (t) { return '<span class="session-tag">#' + t + '</span>'; }).join("") +
                 '</div>';
         }
 
-        var totalCount = data.sessions.length;
         var avgCorrectness = "N/A";
-        var correctCount = 0;
-        var correctSum = 0;
-        data.sessions.forEach(function (s) {
-            if (s.correctness !== null && s.correctness !== undefined) {
-                correctSum += s.correctness;
-                correctCount++;
-            }
-        });
-        if (correctCount > 0) avgCorrectness = Math.round(correctSum / correctCount) + "%";
+        if (data.sessions.length > 0) {
+            var sum = 0, cnt = 0;
+            data.sessions.forEach(function (s) {
+                if (s.correctness !== null && s.correctness !== undefined) { sum += s.correctness; cnt++; }
+            });
+            if (cnt > 0) avgCorrectness = Math.round(sum / cnt) + "%";
+        }
 
-        var headerHtml = '<div class="session-summary">' +
-            '<span>📊 共 ' + totalCount + ' 次课</span>' +
+        container.innerHTML =
+            '<div class="session-summary">' +
+            '<span>📊 共 ' + data.sessionCount + ' 次课</span>' +
             '<span>📈 均正确率 ' + avgCorrectness + '</span>' +
-            '</div>' + tagsHtml;
-
-        var listHtml = '<div class="session-list">';
-        recent.forEach(function (s) {
-            var dateStr = s.date || "未知日期";
-            var match = String(dateStr).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-            if (match) dateStr = match[2] + "月" + match[3] + "日";
-
-            var knowledge = (s.knowledge || "").length > 25
-                ? (s.knowledge || "").substring(0, 25) + "..."
-                : (s.knowledge || "未记录");
-
-            var correctnessStr = s.correctness !== null && s.correctness !== undefined
-                ? '<span class="session-correctness">' + s.correctness + '%</span>'
-                : "";
-
-            listHtml += '<div class="session-item">' +
-                '<div class="session-item-header">' +
-                '<span class="session-date">' + dateStr + '</span>' +
-                '<span class="session-knowledge">' + knowledge + '</span>' +
-                correctnessStr +
-                '</div>' +
-                '<div class="session-item-body">' + (s.performance || "").substring(0, 120) + '</div>' +
-                '</div>';
-        });
-        listHtml += '</div>';
-
-        container.innerHTML = headerHtml + listHtml;
+            '</div>' + tagsHtml +
+            '<div class="session-list">' +
+            recent.map(function (s) {
+                var dateStr = s.date || "";
+                var m = String(dateStr).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+                if (m) dateStr = m[2] + "月" + m[3] + "日";
+                var kw = (s.knowledge || "").length > 25 ? (s.knowledge || "").substring(0, 25) + "..." : (s.knowledge || "未记录");
+                var cr = s.correctness !== null && s.correctness !== undefined
+                    ? '<span class="session-correctness">' + s.correctness + '%</span>' : "";
+                return '<div class="session-item"><div class="session-item-header">' +
+                    '<span class="session-date">' + dateStr + '</span>' +
+                    '<span class="session-knowledge">' + kw + '</span>' + cr +
+                    '</div><div class="session-item-body">' + (s.performance || "").substring(0, 120) + '</div></div>';
+            }).join("") +
+            '</div>';
     };
 
-    function updateStudentMemoryButtons() {
-        var deleteBtn = document.getElementById("deleteStudentBtn");
-        if (!deleteBtn) return;
-        var name = (document.getElementById("studentName") || {}).value || "";
-        deleteBtn.disabled = !MODULE.findProfile(name);
-    }
-
-    // ========== 初始化 & 事件绑定 ==========
-
+    // ========== 初始化 ==========
     MODULE.init = function () {
         renderStudentMemoryList();
         var input = document.getElementById("studentName");
         if (input) {
             input.addEventListener("focus", showDropdown);
             input.addEventListener("click", showDropdown);
-            input.addEventListener("change", handleStudentNameMemoryChange);
-            input.addEventListener("input", function () {
-                var profile = MODULE.findProfile(input.value);
+            input.addEventListener("input", async function () {
+                var profile = await MODULE.findProfile(input.value);
                 if (profile) MODULE.applyProfileToForm(profile);
                 else updateStudentMemoryButtons();
                 showDropdown();
@@ -410,22 +293,12 @@
             input.addEventListener("keydown", function (e) {
                 var dropdown = document.getElementById("studentMemoryDropdown");
                 var isOpen = dropdown && dropdown.classList.contains("show");
-                if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    if (!isOpen) showDropdown();
-                    else setDropdownActiveIndex(dropdownActiveIndex + 1);
-                } else if (e.key === "ArrowUp") {
-                    if (isOpen) {
-                        e.preventDefault();
-                        setDropdownActiveIndex(dropdownActiveIndex - 1);
-                    }
-                } else if (e.key === "Enter" && isOpen && dropdownActiveIndex >= 0 && dropdownItems[dropdownActiveIndex]) {
-                    e.preventDefault();
-                    MODULE.applyProfileToForm(dropdownItems[dropdownActiveIndex]);
-                    hideDropdown();
-                } else if (e.key === "Escape") {
-                    hideDropdown();
+                if (e.key === "ArrowDown") { e.preventDefault(); if (!isOpen) showDropdown(); else setDropdownActiveIndex(dropdownActiveIndex + 1); }
+                else if (e.key === "ArrowUp") { if (isOpen) { e.preventDefault(); setDropdownActiveIndex(dropdownActiveIndex - 1); } }
+                else if (e.key === "Enter" && isOpen && dropdownActiveIndex >= 0 && dropdownItems[dropdownActiveIndex]) {
+                    e.preventDefault(); MODULE.applyProfileToForm(dropdownItems[dropdownActiveIndex]); hideDropdown();
                 }
+                else if (e.key === "Escape") { hideDropdown(); }
             });
             input.addEventListener("blur", function () {
                 setTimeout(function () { hideDropdown(); }, 120);
@@ -440,7 +313,6 @@
 
         var saveBtn = document.getElementById("saveStudentBtn");
         if (saveBtn) saveBtn.onclick = function () { MODULE.upsertProfile(true); };
-
         var deleteBtn = document.getElementById("deleteStudentBtn");
         if (deleteBtn) deleteBtn.onclick = MODULE.deleteProfile;
 
