@@ -7,7 +7,7 @@ import sys
 # 确保 server 包可导入
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 
 from server.config import SECRET_KEY, SQLALCHEMY_DATABASE_URI, DEBUG, HOST, PORT
@@ -28,6 +28,15 @@ def create_app():
     # 数据库
     init_db(app)
     seed_defaults(app)
+
+    # 禁用静态文件缓存（开发模式）
+    @app.after_request
+    def no_cache(response):
+        if request.path.startswith("/js/") or request.path.startswith("/css/") or request.path == "/":
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
 
     # 注册路由
     register_routes()
