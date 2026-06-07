@@ -348,15 +348,34 @@
         }
     }
 
-    function loadApiKey() {
-        var k = S.getApiKey();
+    async function loadApiKey() {
+        // 先迁移旧版 key（如有）
+        await S.migrateApiKeyIfNeeded();
+        var k = await S.getApiKey();
         if (k) document.getElementById("apiKeyInput").value = k;
     }
 
-    function saveApiKey() {
+    async function saveApiKey() {
         var key = document.getElementById("apiKeyInput").value.trim();
-        if (key) { S.saveApiKey(key); alert("API Key已保存 (模型: " + C.DEEPSEEK_MODEL + ")"); }
-        else alert("请输入密钥");
+        if (!key) { alert("请输入密钥"); return; }
+
+        var btn = document.getElementById("saveApiKeyBtn");
+        var original = btn ? btn.innerText : "保存";
+        if (btn) { btn.innerText = "验证中..."; btn.disabled = true; }
+
+        try {
+            var result = await S.validateApiKey(key);
+            if (result.ok) {
+                await S.saveApiKey(key);
+                alert("✅ " + result.message + " (模型: " + C.DEEPSEEK_MODEL + ")");
+            } else {
+                alert(result.message);
+            }
+        } catch (e) {
+            alert("保存失败：" + (e.message || "未知错误"));
+        } finally {
+            if (btn) { btn.innerText = original; btn.disabled = false; }
+        }
     }
 
     function clearFeedbackHistory() {
@@ -438,6 +457,26 @@
             text: cleanText
         };
         S.saveFeedbackHistoryEntry(item);
+
+        // 同时记录到学生档案的学习历史
+        if (formData.studentName && formData.studentName !== "这位同学") {
+            S.addStudentSession(formData.studentName, {
+                date: formData.date || "",
+                knowledge: formData.knowledge || "",
+                performance: cleanText.substring(0, 200),
+                highlights: formData.selectedHighlights || [],
+                weaknesses: formData.selectedWeak || [],
+                correctness: formData.correctness,
+                feedback: cleanText.substring(0, 500),
+                tags: PM.inferSceneTags(formData).slice(0, 5)
+            });
+        }
+
+        // 容量检查，必要时自动清理
+        var report = S.getStorageReport();
+        if (report.status === "warn") {
+            console.warn("[storage] 用量接近上限：" + report.usedMB.toFixed(1) + "MB");
+        }
     }
 
     async function onGenerate() {
@@ -445,7 +484,7 @@
         var requiredReport = validateRequiredFields(formData);
         if (!requiredReport.ok) return;
 
-        var apiKey = S.getApiKey();
+        var apiKey = await S.getApiKey();
         if (!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
         var btn = document.getElementById("generateBtn");
         var resultDiv = document.getElementById("feedbackContent");
@@ -493,7 +532,7 @@
         var baseFormData = MODULE.getFormData();
         var requiredReport = validateQuickRequiredFields();
         if (!requiredReport.ok) return;
-        var apiKey = S.getApiKey();
+        var apiKey = await S.getApiKey();
         if (!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
 
         var formData = PM.buildQuickFormData(baseFormData);
@@ -598,7 +637,7 @@
     }
 
     async function reviseCurrentFeedback(type) {
-        var apiKey = S.getApiKey();
+        var apiKey = await S.getApiKey();
         if (!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
 
         var resultDiv = document.getElementById("feedbackContent");

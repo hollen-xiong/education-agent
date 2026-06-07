@@ -137,6 +137,11 @@
         setSelectValueIfExists("studentGender", profile.gender);
         setSelectValueIfExists("grade", profile.grade);
         setSelectValueIfExists("subject", profile.subject);
+        // 学生备注
+        var notesEl = document.getElementById("studentNotes");
+        if (notesEl) notesEl.value = profile.notes || "";
+        // 渲染学习历史
+        MODULE.renderSessionHistory(profile.name);
         updateStudentMemoryButtons();
         MODULE.renderDropdown();
     };
@@ -200,7 +205,9 @@
 
             var metaSpan = document.createElement("span");
             metaSpan.className = "student-memory-meta";
-            metaSpan.textContent = [profile.grade, profile.gender, profile.subject].filter(Boolean).join("｜");
+            var sessionCount = (profile.sessions && profile.sessions.length) ? profile.sessions.length + "次课" : "";
+            var tags = (profile.tags && profile.tags.length) ? " " + profile.tags.slice(0, 2).map(function(t) { return "#" + t; }).join(" ") : "";
+            metaSpan.textContent = [profile.grade, profile.gender, profile.subject, sessionCount, tags].filter(Boolean).join("｜");
 
             item.appendChild(nameSpan);
             item.appendChild(metaSpan);
@@ -271,6 +278,7 @@
         var gender = (document.getElementById("studentGender") || {}).value || "男";
         var grade = (document.getElementById("grade") || {}).value || "初中";
         var subject = (document.getElementById("subject") || {}).value || "数学";
+        var notes = (document.getElementById("studentNotes") || {}).value || "";
         var profiles = MODULE.getProfiles();
         var idx = -1;
         for (var i = 0; i < profiles.length; i++) {
@@ -282,6 +290,9 @@
             gender: gender,
             grade: grade,
             subject: subject,
+            notes: notes,
+            sessions: idx >= 0 ? (profiles[idx].sessions || []) : [],
+            tags: idx >= 0 ? (profiles[idx].tags || []) : [],
             createdAt: idx >= 0 ? profiles[idx].createdAt : now,
             updatedAt: now
         };
@@ -290,6 +301,7 @@
         MODULE.saveProfiles(profiles);
         renderStudentMemoryList();
         if (showAlert) alert("✅ 已保存学生：" + name + "（" + grade + "｜" + gender + "｜" + subject + "）");
+        MODULE.renderSessionHistory(name);
         return true;
     };
 
@@ -297,13 +309,80 @@
         var name = normalizeStudentName((document.getElementById("studentName") || {}).value || "");
         var profile = MODULE.findProfile(name);
         if (!profile) { alert("当前姓名还没有保存记录"); return; }
-        if (!confirm("确定删除"" + profile.name + ""的学生记忆吗？")) return;
+        if (!confirm("确定删除"" + profile.name + ""的学生记忆吗？\n（包含 " + ((profile.sessions && profile.sessions.length) || 0) + " 条学习记录）")) return;
         var profiles = MODULE.getProfiles().filter(function (item) {
             return normalizeStudentName(item.name) !== normalizeStudentName(profile.name);
         });
         MODULE.saveProfiles(profiles);
         renderStudentMemoryList();
+        MODULE.renderSessionHistory("");
         alert("✅ 已删除该学生记忆");
+    };
+
+    // ========== 学习历史渲染 ==========
+
+    MODULE.renderSessionHistory = function (studentName) {
+        var container = document.getElementById("studentSessionHistory");
+        if (!container) return;
+        var data = S.getStudentSessions(studentName);
+        if (!data || !data.sessions.length) {
+            container.innerHTML = '<div class="session-history-empty">暂无该学生的学习记录，生成反馈后会自动记录。</div>';
+            return;
+        }
+
+        var recent = data.sessions.slice(-5).reverse();
+        var tagsHtml = "";
+        if (data.profile && data.profile.tags && data.profile.tags.length) {
+            tagsHtml = '<div class="session-tags">' +
+                data.profile.tags.map(function (t) {
+                    return '<span class="session-tag">#' + t + '</span>';
+                }).join("") +
+                '</div>';
+        }
+
+        var totalCount = data.sessions.length;
+        var avgCorrectness = "N/A";
+        var correctCount = 0;
+        var correctSum = 0;
+        data.sessions.forEach(function (s) {
+            if (s.correctness !== null && s.correctness !== undefined) {
+                correctSum += s.correctness;
+                correctCount++;
+            }
+        });
+        if (correctCount > 0) avgCorrectness = Math.round(correctSum / correctCount) + "%";
+
+        var headerHtml = '<div class="session-summary">' +
+            '<span>📊 共 ' + totalCount + ' 次课</span>' +
+            '<span>📈 均正确率 ' + avgCorrectness + '</span>' +
+            '</div>' + tagsHtml;
+
+        var listHtml = '<div class="session-list">';
+        recent.forEach(function (s) {
+            var dateStr = s.date || "未知日期";
+            var match = String(dateStr).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (match) dateStr = match[2] + "月" + match[3] + "日";
+
+            var knowledge = (s.knowledge || "").length > 25
+                ? (s.knowledge || "").substring(0, 25) + "..."
+                : (s.knowledge || "未记录");
+
+            var correctnessStr = s.correctness !== null && s.correctness !== undefined
+                ? '<span class="session-correctness">' + s.correctness + '%</span>'
+                : "";
+
+            listHtml += '<div class="session-item">' +
+                '<div class="session-item-header">' +
+                '<span class="session-date">' + dateStr + '</span>' +
+                '<span class="session-knowledge">' + knowledge + '</span>' +
+                correctnessStr +
+                '</div>' +
+                '<div class="session-item-body">' + (s.performance || "").substring(0, 120) + '</div>' +
+                '</div>';
+        });
+        listHtml += '</div>';
+
+        container.innerHTML = headerHtml + listHtml;
     };
 
     function updateStudentMemoryButtons() {

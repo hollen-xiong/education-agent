@@ -14,14 +14,17 @@
     MODULE.STORAGE_WEAKPOINTS     = "feedback_disadvantages_v16_common_final";
     MODULE.STORAGE_SUGGESTIONS    = "feedback_suggestions_v12";
     MODULE.STORAGE_ENCOURAGEMENTS = "feedback_encouragements_v12";
-    MODULE.STORAGE_API_KEY        = "deepseek_api_key_v12";
+    MODULE.STORAGE_API_KEY        = "deepseek_api_key_v13";          // v13: 加密存储
+    MODULE.STORAGE_API_KEY_SALT   = "deepseek_api_key_salt_v13";    // 加密盐值
     MODULE.STORAGE_GREETING_SWITCH = "greeting_switch_enabled";
-    MODULE.STORAGE_STUDENTS       = "feedback_students_memory_v1";
+    MODULE.STORAGE_STUDENTS       = "feedback_students_memory_v2";   // v2: 增强数据结构
     MODULE.STORAGE_FEEDBACK_HISTORY = "feedback_history_v14_repeat_check";
 
     // ========== 应用常量 ==========
     MODULE.HISTORY_LIMIT = 12;
     MODULE.DEEPSEEK_MODEL = "deepseek-chat";
+    MODULE.LOCALSTORAGE_QUOTA_WARN = 4.5;   // MB，接近 5MB 限额时警告
+    MODULE.LOCALSTORAGE_QUOTA_MAX  = 4.9;   // MB，超过此值拒绝写入
 
     // ========== 拼音排序 ==========
     MODULE.STUDENT_PINYIN_COLLATOR = new Intl.Collator("zh-Hans-CN-u-co-pinyin", {

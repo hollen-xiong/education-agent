@@ -38,6 +38,14 @@
                     <button type="button" class="mini-memory-btn danger" id="deleteStudentBtn">删除</button>
                 </div>
                 <div class="hint">生成反馈或点击保存后，会记住姓名、学段、性别和科目；下次可从姓名栏下拉选择。</div>
+                <!-- 学生备注 -->
+                <div class="field-group" style="margin-top: 12px;">
+                    <label>📝 学生备注 <span class="optional-mark">选填</span></label>
+                    <textarea id="studentNotes" rows="1" placeholder="例：基础薄弱但认真、性格内向、需要多鼓励…" style="resize: vertical;"></textarea>
+                    <div class="hint">记录学习特点、性格等，帮助生成更贴切的反馈。</div>
+                </div>
+                <!-- 学习历史 -->
+                <div id="studentSessionHistory" class="session-history" style="margin-top: 12px;"></div>
             </div>
             <div class="field-group">
                 <label>⚧ 性别 <span class="required-mark">必填</span></label>
