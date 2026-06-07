@@ -1,0 +1,21 @@
+# 备份文件
+*_backup_*.html
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node (预留后续构建工具)
+node_modules/
+dist/
+.cache/
+
+# 日志
+*.log

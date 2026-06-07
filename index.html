@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>教培助手 · 真实风格反馈生成器｜真实文风优化版</title>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="container">
+    <div style="margin-bottom: 16px;">
+        <h2 style="font-weight: 700; letter-spacing: -0.3px;">📝 教培助手 <span style="font-size:0.9rem;color:#64748b;">正式版2.0</span></h2>
+    </div>
+
+    <div class="api-config">
+        <div class="field-group" style="flex:3">
+            <label>🔑 DeepSeek API Key <span style="font-weight:normal;">(deepseek-chat)</span></label>
+            <input type="password" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+            <div class="hint">请使用您自己的 DeepSeek API Key</div>
+        </div>
+        <button class="small-btn" id="saveApiKeyBtn">💾 保存密钥</button>
+    </div>
+
+    <!-- ① 学生信息 -->
+    <div class="card required-section" data-required-group="student">
+        <div class="card-header">① 学生信息 <span class="required-mark">必填</span></div>
+        <div class="section-helper">先把学生身份填清楚，后面生成时会继续沿用原来的性别、学段、科目逻辑。</div>
+        <div class="grid-4cols">
+            <div class="field-group">
+                <label>🧑‍🎓 学生姓名 <span class="required-mark">必填</span></label>
+                <div class="student-name-wrapper">
+                    <input type="text" id="studentName" placeholder="例: 小明" autocomplete="off" aria-haspopup="listbox" aria-expanded="false">
+                    <datalist id="studentMemoryList"></datalist>
+                    <div id="studentMemoryDropdown" class="student-memory-dropdown" role="listbox" aria-label="已保存学生姓名"></div>
+                </div>
+                <div class="memory-actions">
+                    <button type="button" class="mini-memory-btn" id="saveStudentBtn">💾 保存学生</button>
+                    <button type="button" class="mini-memory-btn danger" id="deleteStudentBtn">删除</button>
+                </div>
+                <div class="hint">生成反馈或点击保存后，会记住姓名、学段、性别和科目；下次可从姓名栏下拉选择。</div>
+            </div>
+            <div class="field-group">
+                <label>⚧ 性别 <span class="required-mark">必填</span></label>
+                <select id="studentGender">
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+                <div class="hint">AI 将根据性别自动使用"他/她"</div>
+            </div>
+            <div class="field-group">
+                <label>📚 年级 <span class="required-mark">必填</span></label>
+                <select id="grade">
+                    <option value="小学">小学</option>
+                    <option value="初中">初中</option>
+                    <option value="高中">高中</option>
+                </select>
+            </div>
+            <div class="field-group">
+                <label>📚 科目 <span class="required-mark">必填</span></label>
+                <select id="subject">
+                    <option value="数学">数学</option>
+                    <option value="物理">物理</option>
+                    <option value="语文">语文</option>
+                    <option value="英语">英语</option>
+                    <option value="化学">化学</option>
+                    <option value="生物">生物</option>
+                    <option value="历史">历史</option>
+                    <option value="地理">地理</option>
+                    <option value="政治">政治</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ② 本节课内容 -->
+    <div class="card required-section" data-required-group="knowledge">
+        <div class="card-header">② 本节课内容 <span class="required-mark">必填</span></div>
+        <div class="grid-2cols">
+            <div class="field-group">
+                <label>📅 日期</label>
+                <input type="date" id="date" value="">
+                <div class="hint">不填时默认今天。</div>
+            </div>
+            <div class="field-group">
+                <label>📖 本节课内容 / 核心知识点 <span class="required-mark">必填</span></label>
+                <input type="text" id="knowledge" placeholder="例: 光电效应 / 理想气体状态方程 / 导数单调性" autocomplete="off">
+                <div class="hint">AI 会根据年级 + 知识点自动扩展典型子内容。</div>
+            </div>
+        </div>
+
+        <div class="quick-generate-panel">
+            <div class="quick-generate-title">⚡ 快速生成 <span class="optional-mark">快捷</span></div>
+            <div class="hint">只需要选学生类型和反馈方向，会调用 AI 快速生成一版反馈，生成后仍可继续二次修改。</div>
+            <div class="quick-generate-row">
+                <div class="field-group">
+                    <label>学生类型</label>
+                    <select id="quickStudentType">
+                        <option value="普通学生" selected>普通学生</option>
+                        <option value="学霸">学霸</option>
+                        <option value="学渣">学渣</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>反馈方向</label>
+                    <select id="quickFeedbackDirection">
+                        <option value="表扬鼓励" selected>表扬鼓励</option>
+                        <option value="批评提醒">批评提醒</option>
+                    </select>
+                </div>
+                <button type="button" class="quick-generate-btn" id="quickGenerateBtn">⚡ 快速生成</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ③ 学生优点 -->
+    <div class="card required-section" data-required-group="highlights">
+        <div class="card-header">③ 学生优点 <span class="required-mark">必填</span></div>
+        <div class="section-helper">至少选择 1 个优点。也可以先添加自定义优点，再勾选使用。</div>
+        <div id="highlightsCheckboxArea" class="options-group" style="flex-wrap: wrap;"></div>
+        <div class="add-option">
+            <input type="text" id="newHighlightInput" placeholder="例如：主动整理笔记" autocomplete="off">
+            <button class="small-btn" id="addHighlightBtn">➕ 添加优点</button>
+        </div>
+    </div>
+
+    <!-- ④ 学生缺点 -->
+    <div class="card required-section" data-required-group="weakpoints">
+        <div class="card-header">④ 学生缺点 <span class="required-mark">必填</span></div>
+        <div class="section-helper">至少选择 1 个问题点。这里不是为了批评，而是给生成内容提供真实抓手。</div>
+        <div id="weakPointsCheckboxArea" class="options-group" style="flex-wrap: wrap;"></div>
+        <div class="add-option">
+            <input type="text" id="newWeakInput" placeholder="例如：审题不细心" autocomplete="off">
+            <button class="small-btn" id="addWeakBtn">➕ 添加缺点</button>
+        </div>
+    </div>
+
+    <!-- ⑤ 选填补充 -->
+    <div class="card optional-supplement-card">
+        <div class="card-header">⑤ 选填补充 <span class="optional-mark">选填</span></div>
+        <div class="section-helper">这些内容不填也可以生成；填写越具体，反馈越像真实老师写的。</div>
+        <div class="field-group soft-block">
+            <label>📝 作业布置 <span class="optional-mark">选填</span></label>
+            <textarea id="homework" rows="2" placeholder="例: 完成液柱部分练习题，整理电磁感应笔记。若没有作业可留空。"></textarea>
+            <div class="hint">填写后仍按原逻辑单独放在最后一行；不填则不生成作业段落。</div>
+        </div>
+
+        <div class="field-group soft-block">
+            <label>📝 课上真实情况 <span class="optional-mark">选填，最多 4 条</span></label>
+            <div class="grid-2cols">
+                <textarea class="real-note-input" id="realNote1" rows="1" placeholder="真实情况1：例：笔记本没带"></textarea>
+                <textarea class="real-note-input" id="realNote2" rows="1" placeholder="真实情况2：例：今天有点犯困"></textarea>
+                <textarea class="real-note-input" id="realNote3" rows="1" placeholder="真实情况3：例：带着学校错题来问"></textarea>
+                <textarea class="real-note-input" id="realNote4" rows="1" placeholder="真实情况4：例：计算过程跳步"></textarea>
+            </div>
+            <div class="hint">写得越多越真实；建议一格只写一个具体事实，不要写长段总结。</div>
+        </div>
+
+        <div class="field-group soft-block" style="margin-bottom:0;">
+            <div class="options-group" style="margin-bottom: 8px;">
+                <label class="checkbox-option">
+                    <input type="checkbox" id="enableCorrectnessCheckbox"> ✅ 填写正确率 <span class="optional-mark">选填</span>
+                </label>
+            </div>
+            <div id="correctnessSliderArea" style="display: none;">
+                <div class="slider-wrapper">
+                    <input type="range" id="correctnessSlider" min="0" max="100" step="5" value="80">
+                    <span class="correctness-value" id="correctnessValue">80%</span>
+                </div>
+                <div class="hint">拖动选择正确率（步进 5%）。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 高级选项 -->
+    <details class="card advanced-panel" id="advancedOptions">
+        <summary>
+            <span>⚙️ 高级选项</span>
+            <span class="advanced-subtitle">下次课关注点 / 本节课寄语 / 改进意见</span>
+        </summary>
+        <div class="advanced-content">
+            <div class="field-group">
+                <label>🎯 下次课关注点 <span class="optional-mark">选填</span></label>
+                <textarea id="nextFocus" rows="2" placeholder="例：下次课重点看一下本周作业完成情况，同时继续巩固导数中分类讨论和变量分离的题型。"></textarea>
+                <div class="hint">填写后只作为后续教学规划参考，会自然融入学生表现，不会硬贴原句或固定放在末尾。</div>
+            </div>
+
+            <div class="advanced-inner-card">
+                <div class="card-header mini-header">✨ 本节课寄语 <span style="font-size:0.75rem;">(勾选后作为语气参考，可自然改写)</span></div>
+                <div id="encouragementArea" class="encouragement-radio-group"></div>
+                <div class="add-option">
+                    <input type="text" id="newEncouragementInput" placeholder="例如：继续加油，保持状态" autocomplete="off">
+                    <button class="small-btn" id="addEncouragementBtn">➕ 添加寄语</button>
+                </div>
+            </div>
+
+            <div class="advanced-inner-card">
+                <div class="card-header mini-header">📌 改进意见</div>
+                <div class="field-group">
+                    <label>选择本次改进重点（选"不生成"则不输出改进段落）</label>
+                    <select id="suggestionSelect" class="select-custom">
+                        <option value="">-- 不生成改进建议 --</option>
+                    </select>
+                </div>
+                <div class="editable-tags" id="suggestionTagsArea"></div>
+                <div class="add-option">
+                    <input type="text" id="newSuggestionInput" placeholder="例如：强化审题训练" autocomplete="off">
+                    <button class="small-btn" id="addSuggestionBtn">➕ 添加改进方向</button>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <div id="requiredErrorMessage" class="form-error-message" aria-live="polite"></div>
+
+    <!-- 参数栏 -->
+    <div class="param-bar">
+        <div class="param-group">
+            <span class="param-label">👋 问候语：</span>
+            <label style="display: inline-flex; align-items: center; gap: 6px; background: #fef3c7; padding: 4px 12px; border-radius: 40px;">
+                <input type="checkbox" id="enableGreetingCheckbox" checked> 启用问候语
+            </label>
+            <select id="greetingTarget" style="width: auto; min-width: 80px;">
+                <option value="爸爸">爸爸</option>
+                <option value="妈妈">妈妈</option>
+                <option value="家长" selected>家长</option>
+            </select>
+            <select id="greetingTime" style="width: auto; min-width: 80px;">
+                <option value="上午">上午</option>
+                <option value="下午" selected>下午</option>
+                <option value="晚上">晚上</option>
+            </select>
+            <div class="hint">关闭问候语 → 直接生成"学生+日期+科目课后反馈"标题行</div>
+        </div>
+        <div class="param-group">
+            <span class="param-label">📏 字数控制：</span>
+            <select id="wordCountSelect" style="width: auto; min-width: 100px;">
+                <option value="150">150字左右</option>
+                <option value="200">200字左右</option>
+                <option value="250">250字左右</option>
+                <option value="300" selected>300字左右</option>
+                <option value="350">350字左右</option>
+                <option value="400">400字左右</option>
+            </select>
+        </div>
+        <div class="param-group">
+            <span class="param-label">✍️ 表达：</span>
+            <label class="temp-option"><input type="radio" name="tempMode" value="real" checked> 🔍 真实</label>
+            <label class="temp-option"><input type="radio" name="tempMode" value="vivid"> ✨ 生动</label>
+        </div>
+        <div class="param-group">
+            <span class="param-label">🎭 语气：</span>
+            <label class="tone-option"><input type="radio" name="toneStyle" value="encourage"> 🌱 鼓励</label>
+            <label class="tone-option"><input type="radio" name="toneStyle" value="critical"> ⚡ 批评</label>
+            <label class="tone-option"><input type="radio" name="toneStyle" value="neutral" checked> 🧊 平和</label>
+        </div>
+    </div>
+
+    <!-- 生成按钮 -->
+    <div class="generate-actions">
+        <button class="generate-btn" id="generateBtn">✨ 一键生成反馈</button>
+        <div class="revise-actions" aria-label="二次修改按钮">
+            <button class="revise-btn" data-revise-type="shorter">短一点</button>
+            <button class="revise-btn" data-revise-type="longer">长一点</button>
+            <button class="revise-btn" data-revise-type="natural">自然点</button>
+            <button class="revise-btn" data-revise-type="wechat">口语点</button>
+            <button class="revise-btn" data-revise-type="encourage">鼓励点</button>
+            <button class="revise-btn" data-revise-type="strict">严厉点</button>
+            <button class="revise-btn" data-revise-type="emoji">加表情</button>
+        </div>
+    </div>
+
+    <!-- 结果卡片 -->
+    <div class="card result-card">
+        <div style="font-weight: 500; margin-bottom: 8px;">📝 生成的反馈（点击文字可直接编辑）</div>
+        <div id="feedbackContent" class="editable-feedback" contenteditable="true">点击上方按钮生成反馈</div>
+        <div id="qualityReport" class="quality-report"></div>
+        <div class="flex-row">
+            <button class="copy-btn" id="copyFeedbackBtn">📋 复制反馈内容</button>
+            <button class="copy-btn" id="clearHistoryBtn" style="background:#64748b;margin-left:8px;">🧹 清空历史</button>
+        </div>
+        <div class="copy-tip">💡 正文字数更稳 | 作业填了才生成 | 支持口语化和加表情二次修改 | 历史检验避重复</div>
+    </div>
+
+    <div class="footnote">
+        🧠 deepseek-chat · 真实老师文风优化 · 常用优缺点适配 · 自动识别情景 · 历史检验 · 必填更清晰
+    </div>
+</div>
+
+<!-- JS 模块（按依赖顺序加载） -->
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/postprocess.js"></script>
+<script src="js/prompts.js"></script>
+<script src="js/api.js"></script>
+<script src="js/students.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

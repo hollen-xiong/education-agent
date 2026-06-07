@@ -1,0 +1,3440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>教培助手 · 真实风格反馈生成器｜真实文风优化版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f2f5f9;
+            font-family: system-ui, 'Segoe UI', 'Noto Sans', -apple-system, Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px 16px 48px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 780px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9eef3;
+        }
+
+        .card-header {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0f3b5c;
+            border-left: 4px solid #3b82f6;
+            padding-left: 14px;
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 20px;
+            border: 1px solid #cfdee9;
+            background: #ffffff;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+
+        .options-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .radio-option, .checkbox-option, .tone-option, .temp-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            padding: 6px 14px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .radio-option.selected, .checkbox-option.selected, .tone-option.selected, .temp-option.selected {
+            background: #eef4ff;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        input[type="radio"], input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            accent-color: #3b82f6;
+            transform: scale(1.05);
+        }
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        input[type="range"] {
+            flex: 2;
+            min-width: 160px;
+        }
+        .correctness-value {
+            width: 70px;
+            text-align: center;
+            background: #f1f5f9;
+            border-radius: 40px;
+            padding: 8px 0;
+            font-weight: 600;
+        }
+
+        .editable-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .tag {
+            background: #f1f5f9;
+            border-radius: 40px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            color: #94a3b8;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        .tag .remove:hover {
+            color: #dc2626;
+        }
+        .add-option {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .add-option input {
+            flex: 2;
+            padding: 10px 14px;
+        }
+        .small-btn {
+            background: #eef2ff;
+            border: none;
+            border-radius: 40px;
+            padding: 0 20px;
+            font-weight: 500;
+            color: #2563eb;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.1s;
+        }
+        .small-btn:hover {
+            background: #e0e7ff;
+        }
+        .select-custom {
+            background: white;
+            border-radius: 30px;
+            padding: 10px 16px;
+            border: 1px solid #cfdee9;
+            width: 100%;
+        }
+
+        .generate-btn {
+            width: 100%;
+            background: #0f3b5c;
+            color: white;
+            border: none;
+            border-radius: 60px;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .generate-btn:hover {
+            background: #1e4a76;
+            transform: scale(0.98);
+        }
+        .generate-actions {
+            display: grid;
+            grid-template-columns: minmax(180px, 1.1fr) minmax(260px, 1.9fr);
+            gap: 12px;
+            align-items: stretch;
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+        .generate-actions .generate-btn {
+            margin-top: 0;
+            height: 100%;
+            min-height: 54px;
+        }
+        .revise-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+            gap: 8px;
+        }
+        .revise-btn {
+            border: 1px solid #c7d2fe;
+            background: #eef2ff;
+            color: #1e40af;
+            border-radius: 18px;
+            padding: 10px 8px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            min-height: 54px;
+            line-height: 1.25;
+        }
+        .revise-btn:hover {
+            background: #e0e7ff;
+            transform: translateY(-1px);
+        }
+        .revise-btn:disabled,
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-card {
+            background: #fefce8;
+            border-left: 5px solid #f59e0b;
+            padding: 20px;
+            border-radius: 24px;
+        }
+        .editable-feedback {
+            min-height: 180px;
+            padding: 14px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #fde68a;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            outline: none;
+            cursor: text;
+        }
+        .editable-feedback:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245,158,11,0.2);
+        }
+        .copy-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 10px 18px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .copy-btn:hover {
+            background: #d97706;
+        }
+        .copy-tip {
+            font-size: 0.7rem;
+            color: #b45309;
+            margin-top: 8px;
+            text-align: right;
+        }
+        .flex-row {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .footnote {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 24px;
+        }
+
+        .grid-2cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .grid-3cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+        .grid-4cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 16px;
+        }
+        .param-bar {
+            background: #fefce8;
+            border-radius: 28px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            border: 1px solid #fde68a;
+        }
+        .param-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        .param-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #92400e;
+        }
+        .required-mark {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 6px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 0.68rem;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+        .optional-mark {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 6px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.68rem;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+        .section-helper {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            color: #64748b;
+            border-radius: 18px;
+            padding: 10px 12px;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            margin: -4px 0 16px;
+        }
+        .soft-block {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 22px;
+            padding: 14px;
+        }
+        .compact-choice-grid .field-group {
+            margin-bottom: 16px;
+        }
+        .compact-options {
+            gap: 8px;
+            margin-bottom: 0;
+        }
+        .compact-options .radio-option {
+            padding: 6px 10px;
+            font-size: 0.82rem;
+        }
+        .quick-generate-panel {
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 22px;
+            border: 1px solid #bfdbfe;
+            background: linear-gradient(135deg, #eff6ff, #ffffff);
+        }
+        .quick-generate-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 6px;
+        }
+        .quick-generate-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-top: 12px;
+        }
+        .quick-generate-row .field-group {
+            margin-bottom: 0;
+        }
+        .quick-generate-btn {
+            min-height: 46px;
+            padding: 0 18px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.15s;
+            white-space: nowrap;
+        }
+        .quick-generate-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        .quick-generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .optional-supplement-card {
+            border-color: #dbeafe;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        }
+        .optional-supplement-card .card-header {
+            border-left-color: #38bdf8;
+        }
+        .advanced-panel {
+            padding: 0;
+            overflow: hidden;
+        }
+        .advanced-panel summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            color: #0f3b5c;
+            background: linear-gradient(135deg, #eef4ff, #ffffff);
+        }
+        .advanced-panel summary::-webkit-details-marker {
+            display: none;
+        }
+        .advanced-panel summary::after {
+            content: "展开";
+            flex: 0 0 auto;
+            font-size: 0.76rem;
+            color: #2563eb;
+            background: #dbeafe;
+            border-radius: 999px;
+            padding: 5px 10px;
+        }
+        .advanced-panel[open] summary::after {
+            content: "收起";
+        }
+        .advanced-subtitle {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: #64748b;
+            margin-left: auto;
+        }
+        .advanced-content {
+            padding: 18px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .advanced-inner-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .mini-header {
+            font-size: 1rem;
+            margin-bottom: 14px;
+        }
+        .form-error-message {
+            display: none;
+            margin: -4px 0 18px;
+            padding: 12px 14px;
+            border-radius: 18px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }
+        .field-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
+        }
+        .required-section.has-error {
+            border-color: #fecaca;
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.08), 0 4px 12px rgba(0,0,0,0.03);
+        }
+        @media (max-width: 640px) {
+            .grid-3cols, .grid-4cols {
+                grid-template-columns: 1fr 1fr;
+            }
+            .param-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .generate-actions {
+                grid-template-columns: 1fr;
+            }
+            .revise-actions {
+                grid-template-columns: 1fr 1fr;
+            }
+            .advanced-panel summary {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+            .advanced-subtitle {
+                margin-left: 0;
+            }
+        }
+        @media (max-width: 480px) {
+            .grid-3cols, .grid-4cols {
+                grid-template-columns: 1fr;
+            }
+            .revise-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+        .api-config {
+            background: #f1f4f9;
+            border-radius: 24px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 12px;
+        }
+        .api-config .field-group {
+            flex: 2;
+            margin-bottom: 0;
+        }
+        .api-config .small-btn {
+            height: 46px;
+            padding: 0 20px;
+            background: #3b82f6;
+            color: white;
+        }
+        .api-config .small-btn:hover {
+            background: #2563eb;
+        }
+        .encouragement-radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .encouragement-item {
+            background: #f8fafc;
+            border-radius: 40px;
+            padding: 6px 14px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.1s;
+        }
+        .encouragement-item.selected {
+            background: #eef4ff;
+            border-color: #3b82f6;
+        }
+        .quality-report {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 16px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            display: none;
+        }
+        .quality-report.ok {
+            background: #ecfdf5;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+        .quality-report.warn {
+            background: #fff7ed;
+            border-color: #fed7aa;
+            color: #9a3412;
+        }
+        .greeting-checkbox {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fef3c7;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+
+        .student-name-wrapper {
+            position: relative;
+        }
+        .student-memory-dropdown {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 6px);
+            z-index: 50;
+            display: none;
+            max-height: 240px;
+            overflow-y: auto;
+            background: #ffffff;
+            border: 1px solid #cfdee9;
+            border-radius: 18px;
+            padding: 6px;
+            box-shadow: 0 12px 28px rgba(15, 59, 92, 0.14);
+        }
+        .student-memory-dropdown.show {
+            display: block;
+        }
+        .student-memory-item {
+            width: 100%;
+            border: none;
+            background: transparent;
+            border-radius: 14px;
+            padding: 9px 10px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            font-family: inherit;
+            transition: 0.12s;
+        }
+        .student-memory-item:hover,
+        .student-memory-item.active {
+            background: #eef4ff;
+        }
+        .student-memory-name {
+            font-weight: 700;
+            color: #0f3b5c;
+            white-space: nowrap;
+        }
+        .student-memory-meta {
+            font-size: 0.74rem;
+            color: #64748b;
+            white-space: nowrap;
+        }
+        .student-memory-empty {
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .memory-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .mini-memory-btn {
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #334155;
+            border-radius: 16px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .mini-memory-btn:hover {
+            background: #eef2ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+        .mini-memory-btn.danger:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #b91c1c;
+        }
+        .mini-memory-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        .disabled-select {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div style="margin-bottom: 16px;">
+        <h2 style="font-weight: 700; letter-spacing: -0.3px;">📝 教培助手 <span style="font-size:0.9rem;color:#64748b;">正式版2.0</span></h2>
+    </div>
+
+    <div class="api-config">
+        <div class="field-group" style="flex:3">
+            <label>🔑 DeepSeek API Key <span style="font-weight:normal;">(deepseek-chat)</span></label>
+            <input type="password" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+            <div class="hint">请使用您自己的 DeepSeek API Key</div>
+        </div>
+        <button class="small-btn" id="saveApiKeyBtn">💾 保存密钥</button>
+    </div>
+
+    <!-- 必填信息：学生信息 + 本节课内容 + 学生优点 + 学生缺点 -->
+    <div class="card required-section" data-required-group="student">
+        <div class="card-header">① 学生信息 <span class="required-mark">必填</span></div>
+        <div class="section-helper">先把学生身份填清楚，后面生成时会继续沿用原来的性别、学段、科目逻辑。</div>
+        <div class="grid-4cols">
+            <div class="field-group">
+                <label>🧑‍🎓 学生姓名 <span class="required-mark">必填</span></label>
+                <div class="student-name-wrapper">
+                    <input type="text" id="studentName" placeholder="例: 小明" autocomplete="off" aria-haspopup="listbox" aria-expanded="false">
+                    <datalist id="studentMemoryList"></datalist>
+                    <div id="studentMemoryDropdown" class="student-memory-dropdown" role="listbox" aria-label="已保存学生姓名"></div>
+                </div>
+                <div class="memory-actions">
+                    <button type="button" class="mini-memory-btn" id="saveStudentBtn">💾 保存学生</button>
+                    <button type="button" class="mini-memory-btn danger" id="deleteStudentBtn">删除</button>
+                </div>
+                <div class="hint">生成反馈或点击保存后，会记住姓名、学段、性别和科目；下次可从姓名栏下拉选择。</div>
+            </div>
+            <div class="field-group">
+                <label>⚧ 性别 <span class="required-mark">必填</span></label>
+                <select id="studentGender">
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+                <div class="hint">AI 将根据性别自动使用“他/她”</div>
+            </div>
+            <div class="field-group">
+                <label>📚 年级 <span class="required-mark">必填</span></label>
+                <select id="grade">
+                    <option value="小学">小学</option>
+                    <option value="初中">初中</option>
+                    <option value="高中">高中</option>
+                </select>
+            </div>
+            <div class="field-group">
+                <label>📚 科目 <span class="required-mark">必填</span></label>
+                <select id="subject">
+                    <option value="数学">数学</option>
+                    <option value="物理">物理</option>
+                    <option value="语文">语文</option>
+                    <option value="英语">英语</option>
+                    <option value="化学">化学</option>
+                    <option value="生物">生物</option>
+                    <option value="历史">历史</option>
+                    <option value="地理">地理</option>
+                    <option value="政治">政治</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card required-section" data-required-group="knowledge">
+        <div class="card-header">② 本节课内容 <span class="required-mark">必填</span></div>
+        <div class="grid-2cols">
+            <div class="field-group">
+                <label>📅 日期</label>
+                <input type="date" id="date" value="">
+                <div class="hint">不填时默认今天。</div>
+            </div>
+            <div class="field-group">
+                <label>📖 本节课内容 / 核心知识点 <span class="required-mark">必填</span></label>
+                <input type="text" id="knowledge" placeholder="例: 光电效应 / 理想气体状态方程 / 导数单调性" autocomplete="off">
+                <div class="hint">AI 会根据年级 + 知识点自动扩展典型子内容。</div>
+            </div>
+        </div>
+
+        <div class="quick-generate-panel">
+            <div class="quick-generate-title">⚡ 快速生成 <span class="optional-mark">快捷</span></div>
+            <div class="hint">只需要选学生类型和反馈方向，会调用 AI 快速生成一版反馈，生成后仍可继续二次修改。</div>
+            <div class="quick-generate-row">
+                <div class="field-group">
+                    <label>学生类型</label>
+                    <select id="quickStudentType">
+                        <option value="普通学生" selected>普通学生</option>
+                        <option value="学霸">学霸</option>
+                        <option value="学渣">学渣</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>反馈方向</label>
+                    <select id="quickFeedbackDirection">
+                        <option value="表扬鼓励" selected>表扬鼓励</option>
+                        <option value="批评提醒">批评提醒</option>
+                    </select>
+                </div>
+                <button type="button" class="quick-generate-btn" id="quickGenerateBtn">⚡ 快速生成</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 学生优点卡片 -->
+    <div class="card required-section" data-required-group="highlights">
+        <div class="card-header">③ 学生优点 <span class="required-mark">必填</span></div>
+        <div class="section-helper">至少选择 1 个优点。也可以先添加自定义优点，再勾选使用。</div>
+        <div id="highlightsCheckboxArea" class="options-group" style="flex-wrap: wrap;"></div>
+        <div class="add-option">
+            <input type="text" id="newHighlightInput" placeholder="例如：主动整理笔记" autocomplete="off">
+            <button class="small-btn" id="addHighlightBtn">➕ 添加优点</button>
+        </div>
+    </div>
+
+    <!-- 学生缺点卡片 -->
+    <div class="card required-section" data-required-group="weakpoints">
+        <div class="card-header">④ 学生缺点 <span class="required-mark">必填</span></div>
+        <div class="section-helper">至少选择 1 个问题点。这里不是为了批评，而是给生成内容提供真实抓手。</div>
+        <div id="weakPointsCheckboxArea" class="options-group" style="flex-wrap: wrap;"></div>
+        <div class="add-option">
+            <input type="text" id="newWeakInput" placeholder="例如：审题不细心" autocomplete="off">
+            <button class="small-btn" id="addWeakBtn">➕ 添加缺点</button>
+        </div>
+    </div>
+
+
+    <!-- 选填补充：放在必填项之后，避免打断填写顺序 -->
+    <div class="card optional-supplement-card">
+        <div class="card-header">⑤ 选填补充 <span class="optional-mark">选填</span></div>
+        <div class="section-helper">这些内容不填也可以生成；填写越具体，反馈越像真实老师写的。</div>
+        <div class="field-group soft-block">
+            <label>📝 作业布置 <span class="optional-mark">选填</span></label>
+            <textarea id="homework" rows="2" placeholder="例: 完成液柱部分练习题，整理电磁感应笔记。若没有作业可留空。"></textarea>
+            <div class="hint">填写后仍按原逻辑单独放在最后一行；不填则不生成作业段落。</div>
+        </div>
+
+        <div class="field-group soft-block">
+            <label>📝 课上真实情况 <span class="optional-mark">选填，最多 4 条</span></label>
+            <div class="grid-2cols">
+                <textarea class="real-note-input" id="realNote1" rows="1" placeholder="真实情况1：例：笔记本没带"></textarea>
+                <textarea class="real-note-input" id="realNote2" rows="1" placeholder="真实情况2：例：今天有点犯困"></textarea>
+                <textarea class="real-note-input" id="realNote3" rows="1" placeholder="真实情况3：例：带着学校错题来问"></textarea>
+                <textarea class="real-note-input" id="realNote4" rows="1" placeholder="真实情况4：例：计算过程跳步"></textarea>
+            </div>
+            <div class="hint">写得越多越真实；建议一格只写一个具体事实，不要写长段总结。</div>
+        </div>
+
+        <div class="field-group soft-block" style="margin-bottom:0;">
+            <div class="options-group" style="margin-bottom: 8px;">
+                <label class="checkbox-option">
+                    <input type="checkbox" id="enableCorrectnessCheckbox"> ✅ 填写正确率 <span class="optional-mark">选填</span>
+                </label>
+            </div>
+            <div id="correctnessSliderArea" style="display: none;">
+                <div class="slider-wrapper">
+                    <input type="range" id="correctnessSlider" min="0" max="100" step="5" value="80">
+                    <span class="correctness-value" id="correctnessValue">80%</span>
+                </div>
+                <div class="hint">拖动选择正确率（步进 5%）。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 高级选项折叠栏 -->
+    <details class="card advanced-panel" id="advancedOptions">
+        <summary>
+            <span>⚙️ 高级选项</span>
+            <span class="advanced-subtitle">下次课关注点 / 本节课寄语 / 改进意见</span>
+        </summary>
+        <div class="advanced-content">
+            <div class="field-group">
+                <label>🎯 下次课关注点 <span class="optional-mark">选填</span></label>
+                <textarea id="nextFocus" rows="2" placeholder="例：下次课重点看一下本周作业完成情况，同时继续巩固导数中分类讨论和变量分离的题型。"></textarea>
+                <div class="hint">填写后只作为后续教学规划参考，会自然融入学生表现，不会硬贴原句或固定放在末尾。</div>
+            </div>
+
+            <div class="advanced-inner-card">
+                <div class="card-header mini-header">✨ 本节课寄语 <span style="font-size:0.75rem;">(勾选后作为语气参考，可自然改写)</span></div>
+                <div id="encouragementArea" class="encouragement-radio-group"></div>
+                <div class="add-option">
+                    <input type="text" id="newEncouragementInput" placeholder="例如：继续加油，保持状态" autocomplete="off">
+                    <button class="small-btn" id="addEncouragementBtn">➕ 添加寄语</button>
+                </div>
+            </div>
+
+            <div class="advanced-inner-card">
+                <div class="card-header mini-header">📌 改进意见</div>
+                <div class="field-group">
+                    <label>选择本次改进重点（选“不生成”则不输出改进段落）</label>
+                    <select id="suggestionSelect" class="select-custom">
+                        <option value="">-- 不生成改进建议 --</option>
+                    </select>
+                </div>
+                <div class="editable-tags" id="suggestionTagsArea"></div>
+                <div class="add-option">
+                    <input type="text" id="newSuggestionInput" placeholder="例如：强化审题训练" autocomplete="off">
+                    <button class="small-btn" id="addSuggestionBtn">➕ 添加改进方向</button>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <div id="requiredErrorMessage" class="form-error-message" aria-live="polite"></div>
+
+    <!-- 问候语 + 字数选择 + 温度/语气 + 问候语开关 -->
+    <div class="param-bar">
+        <div class="param-group">
+            <span class="param-label">👋 问候语：</span>
+            <label style="display: inline-flex; align-items: center; gap: 6px; background: #fef3c7; padding: 4px 12px; border-radius: 40px;">
+                <input type="checkbox" id="enableGreetingCheckbox" checked> 启用问候语
+            </label>
+            <select id="greetingTarget" style="width: auto; min-width: 80px;">
+                <option value="爸爸">爸爸</option>
+                <option value="妈妈">妈妈</option>
+                <option value="家长"selected>家长</option>
+            </select>
+            <select id="greetingTime" style="width: auto; min-width: 80px;">
+                <option value="上午">上午</option>
+                <option value="下午" selected>下午</option>
+                <option value="晚上">晚上</option>
+            </select>
+            <div class="hint">关闭问候语 → 直接生成“学生+日期+科目课后反馈”标题行</div>
+        </div>
+        <div class="param-group">
+            <span class="param-label">📏 字数控制：</span>
+            <select id="wordCountSelect" style="width: auto; min-width: 100px;">
+                <option value="150">150字左右</option>
+                <option value="200">200字左右</option>
+                <option value="250">250字左右</option>
+                <option value="300" selected>300字左右</option>
+                <option value="350">350字左右</option>
+                <option value="400">400字左右</option>
+            </select>
+        </div>
+        <div class="param-group">
+            <span class="param-label">✍️ 表达：</span>
+            <label class="temp-option"><input type="radio" name="tempMode" value="real" checked> 🔍 真实</label>
+            <label class="temp-option"><input type="radio" name="tempMode" value="vivid"> ✨ 生动</label>
+        </div>
+        <div class="param-group">
+            <span class="param-label">🎭 语气：</span>
+            <label class="tone-option"><input type="radio" name="toneStyle" value="encourage"> 🌱 鼓励</label>
+            <label class="tone-option"><input type="radio" name="toneStyle" value="critical"> ⚡ 批评</label>
+            <label class="tone-option"><input type="radio" name="toneStyle" value="neutral" checked> 🧊 平和</label>
+        </div>
+    </div>
+
+    <!-- 生成反馈按钮 + 二次修改按钮 -->
+    <div class="generate-actions">
+        <button class="generate-btn" id="generateBtn">✨ 一键生成反馈</button>
+        <div class="revise-actions" aria-label="二次修改按钮">
+            <button class="revise-btn" data-revise-type="shorter">短一点</button>
+            <button class="revise-btn" data-revise-type="longer">长一点</button>
+            <button class="revise-btn" data-revise-type="natural">自然点</button>
+            <button class="revise-btn" data-revise-type="wechat">口语点</button>
+            <button class="revise-btn" data-revise-type="encourage">鼓励点</button>
+            <button class="revise-btn" data-revise-type="strict">严厉点</button>
+            <button class="revise-btn" data-revise-type="emoji">加表情</button>
+        </div>
+    </div>
+
+    <!-- 结果卡片 -->
+    <div class="card result-card">
+        <div style="font-weight: 500; margin-bottom: 8px;">📝 生成的反馈（点击文字可直接编辑）</div>
+        <div id="feedbackContent" class="editable-feedback" contenteditable="true">点击上方按钮生成反馈</div>
+        <div id="qualityReport" class="quality-report"></div>
+        <div class="flex-row">
+            <button class="copy-btn" id="copyFeedbackBtn">📋 复制反馈内容</button>
+            <button class="copy-btn" id="clearHistoryBtn" style="background:#64748b;margin-left:8px;">🧹 清空历史</button>
+        </div>
+        <div class="copy-tip">💡 正文字数更稳 | 作业填了才生成 | 支持口语化和加表情二次修改 | 历史检验避重复</div>
+    </div>
+    <div class="footnote">
+        🧠 deepseek-chat · 真实老师文风优化 · 常用优缺点适配 · 自动识别情景 · 历史检验 · 必填更清晰
+    </div>
+</div>
+
+<script>
+    const STORAGE_HIGHLIGHTS = "feedback_advantages_v16_common_final";
+    const STORAGE_WEAKPOINTS = "feedback_disadvantages_v16_common_final";
+    const STORAGE_SUGGESTIONS = "feedback_suggestions_v12";
+    const STORAGE_ENCOURAGEMENTS = "feedback_encouragements_v12";
+    const STORAGE_API_KEY = "deepseek_api_key_v12";
+    const STORAGE_GREETING_SWITCH = "greeting_switch_enabled";
+    const STORAGE_STUDENTS = "feedback_students_memory_v1";
+    const STORAGE_FEEDBACK_HISTORY = "feedback_history_v14_repeat_check";
+    const HISTORY_LIMIT = 12;
+    const DEEPSEEK_MODEL = "deepseek-chat";
+
+    const STUDENT_SURNAME_PINYIN = {
+        "阿":"a", "艾":"ai", "安":"an", "敖":"ao",
+        "巴":"ba", "白":"bai", "班":"ban", "包":"bao", "鲍":"bao", "贝":"bei", "贲":"ben", "毕":"bi", "边":"bian", "卞":"bian", "别":"bie", "邴":"bing", "柏":"bo", "薄":"bo", "卜":"bu", "步":"bu",
+        "蔡":"cai", "曹":"cao", "岑":"cen", "柴":"chai", "常":"chang", "昌":"chang", "晁":"chao", "巢":"chao", "车":"che", "陈":"chen", "成":"cheng", "程":"cheng", "池":"chi", "褚":"chu", "储":"chu", "崔":"cui",
+        "戴":"dai", "邓":"deng", "狄":"di", "刁":"diao", "丁":"ding", "董":"dong", "窦":"dou", "杜":"du", "段":"duan",
+        "鄂":"e",
+        "樊":"fan", "范":"fan", "方":"fang", "房":"fang", "费":"fei", "冯":"feng", "凤":"feng", "封":"feng", "符":"fu", "傅":"fu",
+        "甘":"gan", "高":"gao", "葛":"ge", "耿":"geng", "龚":"gong", "巩":"gong", "贡":"gong", "勾":"gou", "顾":"gu", "谷":"gu", "关":"guan", "管":"guan", "桂":"gui", "郭":"guo",
+        "韩":"han", "郝":"hao", "何":"he", "贺":"he", "洪":"hong", "侯":"hou", "胡":"hu", "花":"hua", "华":"hua", "黄":"huang", "霍":"huo",
+        "姬":"ji", "吉":"ji", "计":"ji", "季":"ji", "纪":"ji", "贾":"jia", "简":"jian", "江":"jiang", "蒋":"jiang", "姜":"jiang", "焦":"jiao", "金":"jin", "靳":"jin", "景":"jing", "井":"jing",
+        "康":"kang", "柯":"ke", "孔":"kong", "寇":"kou", "匡":"kuang", "蒯":"kuai",
+        "赖":"lai", "蓝":"lan", "郎":"lang", "劳":"lao", "雷":"lei", "冷":"leng", "黎":"li", "李":"li", "厉":"li", "利":"li", "连":"lian", "廉":"lian", "梁":"liang", "廖":"liao", "林":"lin", "蔺":"lin", "凌":"ling", "刘":"liu", "柳":"liu", "龙":"long", "娄":"lou", "卢":"lu", "鲁":"lu", "路":"lu", "陆":"lu", "吕":"lv", "罗":"luo", "骆":"luo",
+        "马":"ma", "麻":"ma", "满":"man", "毛":"mao", "梅":"mei", "蒙":"meng", "孟":"meng", "米":"mi", "苗":"miao", "闵":"min", "明":"ming", "莫":"mo", "牟":"mou", "穆":"mu",
+        "倪":"ni", "年":"nian", "聂":"nie", "宁":"ning", "牛":"niu", "农":"nong",
+        "欧":"ou", "区":"ou",
+        "潘":"pan", "庞":"pang", "裴":"pei", "彭":"peng", "皮":"pi", "平":"ping", "蒲":"pu",
+        "戚":"qi", "齐":"qi", "祁":"qi", "钱":"qian", "强":"qiang", "秦":"qin", "邱":"qiu", "丘":"qiu", "仇":"qiu", "屈":"qu", "曲":"qu", "瞿":"qu",
+        "冉":"ran", "饶":"rao", "任":"ren", "荣":"rong", "容":"rong", "茹":"ru", "阮":"ruan",
+        "单":"shan", "商":"shang", "邵":"shao", "佘":"she", "申":"shen", "沈":"shen", "盛":"sheng", "石":"shi", "史":"shi", "时":"shi", "舒":"shu", "司":"si", "宋":"song", "苏":"su", "孙":"sun",
+        "谭":"tan", "汤":"tang", "唐":"tang", "陶":"tao", "滕":"teng", "田":"tian", "佟":"tong", "童":"tong", "涂":"tu", "屠":"tu",
+        "万":"wan", "汪":"wang", "王":"wang", "危":"wei", "韦":"wei", "卫":"wei", "魏":"wei", "温":"wen", "文":"wen", "翁":"weng", "沃":"wo", "巫":"wu", "邬":"wu", "吴":"wu", "伍":"wu", "武":"wu",
+        "奚":"xi", "席":"xi", "夏":"xia", "萧":"xiao", "肖":"xiao", "谢":"xie", "解":"xie", "辛":"xin", "邢":"xing", "熊":"xiong", "徐":"xu", "许":"xu", "薛":"xue",
+        "严":"yan", "阎":"yan", "颜":"yan", "晏":"yan", "燕":"yan", "杨":"yang", "姚":"yao", "叶":"ye", "易":"yi", "殷":"yin", "尹":"yin", "应":"ying", "尤":"you", "游":"you", "于":"yu", "余":"yu", "俞":"yu", "虞":"yu", "袁":"yuan", "岳":"yue", "云":"yun",
+        "臧":"zang", "曾":"zeng", "翟":"zhai", "詹":"zhan", "张":"zhang", "章":"zhang", "赵":"zhao", "郑":"zheng", "支":"zhi", "钟":"zhong", "周":"zhou", "朱":"zhu", "祝":"zhu", "庄":"zhuang", "卓":"zhuo", "宗":"zong", "邹":"zou", "左":"zuo"
+    };
+    const STUDENT_COMPOUND_SURNAME_PINYIN = {
+        "欧阳":"ouyang", "太史":"taishi", "端木":"duanmu", "上官":"shangguan", "司马":"sima", "东方":"dongfang", "独孤":"dugu",
+        "南宫":"nangong", "万俟":"moqi", "闻人":"wenren", "夏侯":"xiahou", "诸葛":"zhuge", "尉迟":"yuchi", "公羊":"gongyang",
+        "赫连":"helian", "澹台":"tantai", "皇甫":"huangfu", "宗政":"zongzheng", "濮阳":"puyang", "公冶":"gongye", "太叔":"taishu",
+        "申屠":"shentu", "公孙":"gongsun", "慕容":"murong", "仲孙":"zhongsun", "钟离":"zhongli", "长孙":"zhangsun",
+        "宇文":"yuwen", "司徒":"situ", "鲜于":"xianyu", "司空":"sikong", "闾丘":"lvqiu", "子车":"ziche", "亓官":"qiguan",
+        "司寇":"sikou", "巫马":"wuma", "公西":"gongxi", "颛孙":"zhuansun", "壤驷":"rangsi", "公良":"gongliang",
+        "漆雕":"qidiao", "乐正":"yuezheng", "宰父":"zaifu", "谷梁":"guliang", "拓跋":"tuoba", "夹谷":"jiagu",
+        "轩辕":"xuanyuan", "令狐":"linghu", "段干":"duangan", "百里":"baili", "呼延":"huyan", "东郭":"dongguo",
+        "南门":"nanmen", "羊舌":"yangshe", "微生":"weisheng", "公户":"gonghu", "公玉":"gongyu", "公仪":"gongyi",
+        "梁丘":"liangqiu", "公仲":"gongzhong", "公上":"gongshang", "公门":"gongmen", "公山":"gongshan", "公坚":"gongjian",
+        "左丘":"zuoqiu", "公伯":"gongbo", "西门":"ximen", "公祖":"gongzu", "第五":"diwu", "公乘":"gongcheng",
+        "贯丘":"guanqiu", "公皙":"gongxi", "南荣":"nanrong", "东里":"dongli", "东宫":"donggong", "仲长":"zhongchang"
+    };
+    const STUDENT_PINYIN_COLLATOR = new Intl.Collator("zh-Hans-CN-u-co-pinyin", {
+        sensitivity: "base",
+        numeric: true
+    });
+    let studentDropdownActiveIndex = -1;
+    let studentDropdownItems = [];
+
+
+    const DEFAULT_HIGHLIGHTS = [
+        "基础题型基本过关",
+        "讲过的方法能用出来",
+        "能独立完成中档题",
+        "解题思路清晰，能讲出来",
+        "带着问题来上课",
+        "状态比之前好一些",
+        "学习态度端正",
+        "笔记整理得不错",
+        "作业完成情况良好",
+        "课上互动比较积极",
+        "课堂专注度较好",
+        "主动订正错题",
+        "答题步骤比之前规范",
+        "正确率较高"
+    ];
+    const DEFAULT_WEAKPOINTS = [
+        "基础知识点有遗忘",
+        "讲过的题型还不能独立写出",
+        "公式应用不熟",
+        "做题正确率不稳定",
+        "中难题需要提醒思路",
+        "题目信息提取困难",
+        "听懂了但是还是无法独自解题",
+        "依赖老师提示",
+        "计算容易出错",
+        "审题不够细心",
+        "解题步骤不够规范",
+        "做题速度偏慢",
+        "课后缺乏复习巩固",
+        "错题未订正",
+        "缺乏举一反三的能力",
+        "作业完成度不达标",
+        "有些自满",
+        "不够自信",
+        "课上互动不积极",
+        "上课有些犯困"
+    ];
+    const DEFAULT_SUGGESTIONS = [
+        "巩固基础概念", "强化计算能力", "突破中高难度题", "整理错题，自己总结方法",
+        "注意休息，保证睡眠", "加强审题训练", "规范解题步骤", "按要求完成作业"
+    ];
+    const DEFAULT_ENCOURAGEMENTS = [
+        "学生课上表现一般，课后要多下功夫。", "整体状态还可以，后面继续保持。",
+        "继续努力，慢慢来，一步一步把问题解决。", "总体而言有进步，继续往前走。",
+        "课后要认真完成老师布置的任务，不要松懈。", "这节课状态是可以的，后面保持住。"
+    ];
+
+    let highlightsList = [], weakPointsList = [], suggestionList = [], encouragementsList = [];
+    let lastGeneratedFormData = null;
+
+    function mergeDefaultItems(savedList, defaultList) {
+        const base = Array.isArray(savedList) ? savedList.filter(Boolean) : [];
+        defaultList.forEach(item => {
+            if (item && !base.includes(item)) base.push(item);
+        });
+        return base;
+    }
+
+
+    function normalizeStudentName(name) {
+        return String(name || "")
+            .replace(/\s+/g, "")
+            .trim();
+    }
+
+    function getStudentSurnameInfo(name) {
+        const cleanName = normalizeStudentName(name);
+        if (!cleanName) return { surname: "", pinyin: "" };
+
+        const compoundSurname = Object.keys(STUDENT_COMPOUND_SURNAME_PINYIN)
+            .find(surname => cleanName.startsWith(surname));
+        if (compoundSurname) {
+            return {
+                surname: compoundSurname,
+                pinyin: STUDENT_COMPOUND_SURNAME_PINYIN[compoundSurname]
+            };
+        }
+
+        const surname = cleanName.charAt(0);
+        return {
+            surname,
+            pinyin: STUDENT_SURNAME_PINYIN[surname] || ""
+        };
+    }
+
+    function compareStudentProfilesBySurnamePinyin(a, b) {
+        const infoA = getStudentSurnameInfo(a?.name || "");
+        const infoB = getStudentSurnameInfo(b?.name || "");
+
+        if (infoA.pinyin && infoB.pinyin && infoA.pinyin !== infoB.pinyin) {
+            return infoA.pinyin.localeCompare(infoB.pinyin, "en", { sensitivity: "base" });
+        }
+
+        const surnameCompare = STUDENT_PINYIN_COLLATOR.compare(infoA.surname || "", infoB.surname || "");
+        if (surnameCompare !== 0) return surnameCompare;
+
+        const nameCompare = STUDENT_PINYIN_COLLATOR.compare(a?.name || "", b?.name || "");
+        if (nameCompare !== 0) return nameCompare;
+
+        return (b?.updatedAt || 0) - (a?.updatedAt || 0);
+    }
+
+    function sortStudentProfilesBySurnamePinyin(profiles) {
+        return [...(Array.isArray(profiles) ? profiles : [])]
+            .sort(compareStudentProfilesBySurnamePinyin);
+    }
+
+    function getStudentProfiles() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(STORAGE_STUDENTS) || "[]");
+            if (!Array.isArray(raw)) return [];
+            const profiles = raw
+                .filter(item => item && normalizeStudentName(item.name))
+                .map(item => ({
+                    name: normalizeStudentName(item.name),
+                    grade: item.grade || "初中",
+                    gender: item.gender || "男",
+                    subject: item.subject || "数学",
+                    createdAt: item.createdAt || item.updatedAt || Date.now(),
+                    updatedAt: item.updatedAt || Date.now()
+                }));
+            return sortStudentProfilesBySurnamePinyin(profiles);
+        } catch(e) {
+            return [];
+        }
+    }
+
+    function saveStudentProfiles(profiles) {
+        const cleaned = [];
+        const seen = new Set();
+        (Array.isArray(profiles) ? profiles : []).forEach(item => {
+            const name = normalizeStudentName(item?.name);
+            if (!name || seen.has(name)) return;
+            seen.add(name);
+            cleaned.push({
+                name,
+                grade: item.grade || "初中",
+                gender: item.gender || "男",
+                subject: item.subject || "数学",
+                createdAt: item.createdAt || Date.now(),
+                updatedAt: item.updatedAt || Date.now()
+            });
+        });
+        localStorage.setItem(STORAGE_STUDENTS, JSON.stringify(sortStudentProfilesBySurnamePinyin(cleaned).slice(0, 300)));
+    }
+
+    function findStudentProfile(name) {
+        const normalized = normalizeStudentName(name);
+        if (!normalized) return null;
+        return getStudentProfiles().find(item => normalizeStudentName(item.name) === normalized) || null;
+    }
+
+    function setSelectValueIfExists(id, value) {
+        const el = document.getElementById(id);
+        if (!el || !value) return;
+        const exists = Array.from(el.options || []).some(opt => opt.value === value);
+        if (exists) el.value = value;
+    }
+
+    function applyStudentProfile(profile) {
+        if (!profile) return;
+        const nameInput = document.getElementById("studentName");
+        if (nameInput) nameInput.value = profile.name || "";
+        setSelectValueIfExists("studentGender", profile.gender);
+        setSelectValueIfExists("grade", profile.grade);
+        setSelectValueIfExists("subject", profile.subject);
+        updateStudentMemoryButtons();
+        renderStudentMemoryDropdown();
+    }
+
+    function getStudentDropdownProfiles() {
+        const input = document.getElementById("studentName");
+        const keyword = normalizeStudentName(input?.value || "");
+        const profiles = getStudentProfiles();
+        if (!keyword || findStudentProfile(keyword)) return profiles;
+
+        const matched = profiles.filter(profile => normalizeStudentName(profile.name).includes(keyword));
+        return matched.length ? matched : profiles;
+    }
+
+    function renderStudentMemoryDropdown() {
+        const dropdown = document.getElementById("studentMemoryDropdown");
+        if (!dropdown) return;
+        const profiles = getStudentDropdownProfiles();
+        studentDropdownItems = profiles;
+        studentDropdownActiveIndex = profiles.length ? 0 : -1;
+        dropdown.innerHTML = "";
+
+        if (!profiles.length) {
+            const empty = document.createElement("div");
+            empty.className = "student-memory-empty";
+            empty.textContent = "暂无已保存学生";
+            dropdown.appendChild(empty);
+            return;
+        }
+
+        profiles.forEach((profile, index) => {
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = "student-memory-item" + (index === 0 ? " active" : "");
+            item.setAttribute("role", "option");
+            item.setAttribute("aria-selected", index === 0 ? "true" : "false");
+            item.dataset.index = String(index);
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "student-memory-name";
+            nameSpan.textContent = profile.name;
+
+            const metaSpan = document.createElement("span");
+            metaSpan.className = "student-memory-meta";
+            metaSpan.textContent = [profile.grade, profile.gender, profile.subject].filter(Boolean).join("｜");
+
+            item.appendChild(nameSpan);
+            item.appendChild(metaSpan);
+
+            item.addEventListener("mousedown", e => e.preventDefault());
+            item.addEventListener("mouseenter", () => setStudentDropdownActiveIndex(index));
+            item.addEventListener("click", () => {
+                applyStudentProfile(profile);
+                hideStudentMemoryDropdown();
+                document.getElementById("studentName")?.focus();
+            });
+
+            dropdown.appendChild(item);
+        });
+    }
+
+    function setStudentDropdownActiveIndex(index) {
+        const dropdown = document.getElementById("studentMemoryDropdown");
+        if (!dropdown || !studentDropdownItems.length) return;
+        const max = studentDropdownItems.length - 1;
+        studentDropdownActiveIndex = Math.max(0, Math.min(index, max));
+        dropdown.querySelectorAll(".student-memory-item").forEach((item, idx) => {
+            const active = idx === studentDropdownActiveIndex;
+            item.classList.toggle("active", active);
+            item.setAttribute("aria-selected", active ? "true" : "false");
+            if (active) item.scrollIntoView({ block: "nearest" });
+        });
+    }
+
+    function showStudentMemoryDropdown() {
+        const dropdown = document.getElementById("studentMemoryDropdown");
+        const input = document.getElementById("studentName");
+        if (!dropdown || !input) return;
+        renderStudentMemoryDropdown();
+        dropdown.classList.add("show");
+        input.setAttribute("aria-expanded", "true");
+    }
+
+    function hideStudentMemoryDropdown() {
+        const dropdown = document.getElementById("studentMemoryDropdown");
+        const input = document.getElementById("studentName");
+        if (!dropdown || !input) return;
+        dropdown.classList.remove("show");
+        input.setAttribute("aria-expanded", "false");
+    }
+
+    function renderStudentMemoryList() {
+        const listEl = document.getElementById("studentMemoryList");
+        if (listEl) {
+            listEl.innerHTML = "";
+            getStudentProfiles().forEach(profile => {
+                const option = document.createElement("option");
+                option.value = profile.name;
+                option.label = [profile.grade, profile.gender, profile.subject].filter(Boolean).join("｜");
+                option.textContent = option.label;
+                listEl.appendChild(option);
+            });
+        }
+        renderStudentMemoryDropdown();
+        updateStudentMemoryButtons();
+    }
+
+    function upsertCurrentStudentProfile(showAlert = false) {
+        const name = normalizeStudentName(document.getElementById("studentName")?.value || "");
+        if (!name || name === "这位同学") {
+            if (showAlert) alert("请输入学生姓名后再保存");
+            return false;
+        }
+        const gender = document.getElementById("studentGender")?.value || "男";
+        const grade = document.getElementById("grade")?.value || "初中";
+        const subject = document.getElementById("subject")?.value || "数学";
+        const profiles = getStudentProfiles();
+        const idx = profiles.findIndex(item => normalizeStudentName(item.name) === name);
+        const now = Date.now();
+        const profile = {
+            name,
+            gender,
+            grade,
+            subject,
+            createdAt: idx >= 0 ? profiles[idx].createdAt : now,
+            updatedAt: now
+        };
+        if (idx >= 0) profiles.splice(idx, 1);
+        profiles.push(profile);
+        saveStudentProfiles(profiles);
+        renderStudentMemoryList();
+        if (showAlert) alert(`✅ 已保存学生：${name}（${grade}｜${gender}｜${subject}）`);
+        return true;
+    }
+
+    function deleteCurrentStudentProfile() {
+        const name = normalizeStudentName(document.getElementById("studentName")?.value || "");
+        const profile = findStudentProfile(name);
+        if (!profile) { alert("当前姓名还没有保存记录"); return; }
+        if (!confirm(`确定删除“${profile.name}”的学生记忆吗？`)) return;
+        const profiles = getStudentProfiles().filter(item => normalizeStudentName(item.name) !== normalizeStudentName(profile.name));
+        saveStudentProfiles(profiles);
+        renderStudentMemoryList();
+        alert("✅ 已删除该学生记忆");
+    }
+
+    function updateStudentMemoryButtons() {
+        const deleteBtn = document.getElementById("deleteStudentBtn");
+        if (!deleteBtn) return;
+        const name = document.getElementById("studentName")?.value || "";
+        deleteBtn.disabled = !findStudentProfile(name);
+    }
+
+    function handleStudentNameMemoryChange() {
+        const input = document.getElementById("studentName");
+        const profile = findStudentProfile(input?.value || "");
+        if (profile) applyStudentProfile(profile);
+        else updateStudentMemoryButtons();
+        renderStudentMemoryDropdown();
+    }
+
+    function initStudentMemory() {
+        renderStudentMemoryList();
+        const input = document.getElementById("studentName");
+        if (input) {
+            input.addEventListener("focus", showStudentMemoryDropdown);
+            input.addEventListener("click", showStudentMemoryDropdown);
+            input.addEventListener("change", handleStudentNameMemoryChange);
+            input.addEventListener("input", () => {
+                const profile = findStudentProfile(input.value);
+                if (profile) applyStudentProfile(profile);
+                else updateStudentMemoryButtons();
+                showStudentMemoryDropdown();
+            });
+            input.addEventListener("keydown", e => {
+                const dropdown = document.getElementById("studentMemoryDropdown");
+                const isOpen = dropdown?.classList.contains("show");
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    if (!isOpen) showStudentMemoryDropdown();
+                    else setStudentDropdownActiveIndex(studentDropdownActiveIndex + 1);
+                } else if (e.key === "ArrowUp") {
+                    if (isOpen) {
+                        e.preventDefault();
+                        setStudentDropdownActiveIndex(studentDropdownActiveIndex - 1);
+                    }
+                } else if (e.key === "Enter" && isOpen && studentDropdownActiveIndex >= 0 && studentDropdownItems[studentDropdownActiveIndex]) {
+                    e.preventDefault();
+                    applyStudentProfile(studentDropdownItems[studentDropdownActiveIndex]);
+                    hideStudentMemoryDropdown();
+                } else if (e.key === "Escape") {
+                    hideStudentMemoryDropdown();
+                }
+            });
+            input.addEventListener("blur", () => {
+                setTimeout(() => hideStudentMemoryDropdown(), 120);
+                if (normalizeStudentName(input.value)) upsertCurrentStudentProfile(false);
+                updateStudentMemoryButtons();
+            });
+        }
+        document.addEventListener("click", e => {
+            const wrapper = document.querySelector(".student-name-wrapper");
+            if (wrapper && !wrapper.contains(e.target)) hideStudentMemoryDropdown();
+        });
+        const saveBtn = document.getElementById("saveStudentBtn");
+        if (saveBtn) saveBtn.onclick = () => upsertCurrentStudentProfile(true);
+        const deleteBtn = document.getElementById("deleteStudentBtn");
+        if (deleteBtn) deleteBtn.onclick = deleteCurrentStudentProfile;
+        ["studentGender", "grade", "subject"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener("change", () => {
+                if (normalizeStudentName(document.getElementById("studentName")?.value || "")) upsertCurrentStudentProfile(false);
+            });
+        });
+    }
+
+    function loadLists() {
+        try { highlightsList = mergeDefaultItems(JSON.parse(localStorage.getItem(STORAGE_HIGHLIGHTS)), DEFAULT_HIGHLIGHTS); } catch(e) { highlightsList = [...DEFAULT_HIGHLIGHTS]; }
+        try { weakPointsList = mergeDefaultItems(JSON.parse(localStorage.getItem(STORAGE_WEAKPOINTS)), DEFAULT_WEAKPOINTS); } catch(e) { weakPointsList = [...DEFAULT_WEAKPOINTS]; }
+        try { suggestionList = mergeDefaultItems(JSON.parse(localStorage.getItem(STORAGE_SUGGESTIONS)), DEFAULT_SUGGESTIONS); } catch(e) { suggestionList = [...DEFAULT_SUGGESTIONS]; }
+        try { encouragementsList = mergeDefaultItems(JSON.parse(localStorage.getItem(STORAGE_ENCOURAGEMENTS)), DEFAULT_ENCOURAGEMENTS); } catch(e) { encouragementsList = [...DEFAULT_ENCOURAGEMENTS]; }
+    }
+    function saveHighlights() { localStorage.setItem(STORAGE_HIGHLIGHTS, JSON.stringify(highlightsList)); }
+    function saveWeakPoints() { localStorage.setItem(STORAGE_WEAKPOINTS, JSON.stringify(weakPointsList)); }
+    function saveSuggestions() { localStorage.setItem(STORAGE_SUGGESTIONS, JSON.stringify(suggestionList)); }
+    function saveEncouragements() { localStorage.setItem(STORAGE_ENCOURAGEMENTS, JSON.stringify(encouragementsList)); }
+
+    function renderHighlights() {
+        const container = document.getElementById("highlightsCheckboxArea");
+        if(!container) return;
+        container.innerHTML = "";
+        highlightsList.forEach((item, idx) => {
+            const label = document.createElement("label"); label.className = "checkbox-option";
+            const cb = document.createElement("input"); cb.type = "checkbox"; cb.value = item; cb.className = "highlight-cb";
+            label.appendChild(cb); label.appendChild(document.createTextNode(item));
+            const removeSpan = document.createElement("span"); removeSpan.innerText = " ✕"; removeSpan.style.cursor = "pointer"; removeSpan.style.marginLeft = "8px";
+            removeSpan.onclick = (e) => { e.stopPropagation(); highlightsList.splice(idx,1); saveHighlights(); renderHighlights(); };
+            label.appendChild(removeSpan); container.appendChild(label);
+        });
+        bindCheckboxStyle();
+    }
+    function renderWeakPoints() {
+        const container = document.getElementById("weakPointsCheckboxArea");
+        if(!container) return;
+        container.innerHTML = "";
+        weakPointsList.forEach((item, idx) => {
+            const label = document.createElement("label"); label.className = "checkbox-option";
+            const cb = document.createElement("input"); cb.type = "checkbox"; cb.value = item; cb.className = "weak-cb";
+            label.appendChild(cb); label.appendChild(document.createTextNode(item));
+            const removeSpan = document.createElement("span"); removeSpan.innerText = " ✕"; removeSpan.style.cursor = "pointer";
+            removeSpan.onclick = (e) => { e.stopPropagation(); weakPointsList.splice(idx,1); saveWeakPoints(); renderWeakPoints(); };
+            label.appendChild(removeSpan); container.appendChild(label);
+        });
+        bindCheckboxStyle();
+    }
+    function renderSuggestions() {
+        const selectEl = document.getElementById("suggestionSelect");
+        if(selectEl) {
+            let prev = selectEl.value;
+            selectEl.innerHTML = '<option value="">-- 不生成改进建议 --</option>';
+            suggestionList.forEach(s => { const opt = document.createElement("option"); opt.value = s; opt.textContent = s; selectEl.appendChild(opt); });
+            if(prev && suggestionList.includes(prev)) selectEl.value = prev; else selectEl.value = "";
+        }
+        const tagsContainer = document.getElementById("suggestionTagsArea");
+        if(tagsContainer) {
+            tagsContainer.innerHTML = "";
+            suggestionList.forEach((s,idx) => {
+                const div = document.createElement("div"); div.className="tag";
+                div.innerHTML = `${s} <span class="remove" data-idx="${idx}">✕</span>`;
+                tagsContainer.appendChild(div);
+            });
+            document.querySelectorAll("#suggestionTagsArea .remove").forEach(btn => {
+                btn.onclick = (e) => { const idx = parseInt(btn.getAttribute("data-idx")); if(!isNaN(idx)){ suggestionList.splice(idx,1); saveSuggestions(); renderSuggestions(); } };
+            });
+        }
+    }
+    function renderEncouragements() {
+        const container = document.getElementById("encouragementArea");
+        if(!container) return;
+        container.innerHTML = "";
+        encouragementsList.forEach((item, idx) => {
+            const div = document.createElement("div"); div.className = "encouragement-item";
+            const radio = document.createElement("input"); radio.type = "radio"; radio.name = "encouragementRadio"; radio.value = item; radio.id = `enc_${idx}`;
+            const label = document.createElement("label"); label.htmlFor = `enc_${idx}`; label.innerText = item;
+            const removeSpan = document.createElement("span"); removeSpan.innerText = " ✕"; removeSpan.style.cursor = "pointer";
+            removeSpan.onclick = (e) => { e.stopPropagation(); encouragementsList.splice(idx,1); saveEncouragements(); renderEncouragements(); };
+            div.appendChild(radio); div.appendChild(label); div.appendChild(removeSpan);
+            container.appendChild(div);
+            radio.addEventListener("change", () => { document.querySelectorAll(".encouragement-item").forEach(el=>el.classList.remove("selected")); if(radio.checked) div.classList.add("selected"); });
+        });
+    }
+    function bindCheckboxStyle() {
+        document.querySelectorAll('.checkbox-option').forEach(opt => {
+            const cb = opt.querySelector('input[type="checkbox"]');
+            if(cb) { const update = () => cb.checked ? opt.classList.add('selected') : opt.classList.remove('selected'); cb.removeEventListener('change', update); cb.addEventListener('change', () => { update(); if (typeof clearRequiredErrors === 'function') clearRequiredErrors(); }); update(); }
+        });
+    }
+    function bindRadioStyle() {
+        document.querySelectorAll('.radio-option').forEach(opt => {
+            const radio = opt.querySelector('input[type="radio"]');
+            if(radio) { const update = () => radio.checked ? opt.classList.add('selected') : opt.classList.remove('selected'); radio.removeEventListener('change', update); radio.addEventListener('change', update); update(); }
+        });
+        document.querySelectorAll('.temp-option, .tone-option').forEach(opt => {
+            const radio = opt.querySelector('input[type="radio"]');
+            if(radio) { const update = () => radio.checked ? opt.classList.add('selected') : opt.classList.remove('selected'); radio.removeEventListener('change', update); radio.addEventListener('change', update); update(); }
+        });
+    }
+    function initCorrectnessSlider() {
+        const slider = document.getElementById("correctnessSlider"); const span = document.getElementById("correctnessValue");
+        if(slider && span) slider.addEventListener("input", ()=> span.innerText = slider.value+"%");
+        const checkbox = document.getElementById("enableCorrectnessCheckbox"); const area = document.getElementById("correctnessSliderArea");
+        if(checkbox && area) checkbox.addEventListener("change", ()=> area.style.display = checkbox.checked ? "block" : "none");
+    }
+    function addHighlight() { const val = document.getElementById("newHighlightInput").value.trim(); if(val && !highlightsList.includes(val)) { highlightsList.push(val); saveHighlights(); renderHighlights(); document.getElementById("newHighlightInput").value=""; } else alert("请输入有效优点"); }
+    function addWeakPoint() { const val = document.getElementById("newWeakInput").value.trim(); if(val && !weakPointsList.includes(val)) { weakPointsList.push(val); saveWeakPoints(); renderWeakPoints(); document.getElementById("newWeakInput").value=""; } else alert("请输入有效缺点"); }
+    function addSuggestion() { const val = document.getElementById("newSuggestionInput").value.trim(); if(val && !suggestionList.includes(val)) { suggestionList.push(val); saveSuggestions(); renderSuggestions(); document.getElementById("newSuggestionInput").value=""; } else alert("请输入改进方向"); }
+    function addEncouragement() { const val = document.getElementById("newEncouragementInput").value.trim(); if(val && !encouragementsList.includes(val)) { encouragementsList.push(val); saveEncouragements(); renderEncouragements(); document.getElementById("newEncouragementInput").value=""; } else alert("请输入寄语"); }
+
+    function getTemperatureByMode() {
+        const mode = document.querySelector('input[name="tempMode"]:checked')?.value || "real";
+        // 温度只负责表达变化幅度；真正的“真实/生动”差异由表达模式提示词控制。
+        if (mode === "vivid") return [0.62, 0.46];
+        return [0.42, 0.32];
+    }
+
+    function getExpressionMode() {
+        return document.querySelector('input[name="tempMode"]:checked')?.value || "real";
+    }
+
+    function getExpressionModeInstruction(formData) {
+        const mode = getExpressionMode();
+        const weakCount = Array.isArray(formData?.selectedWeak) ? formData.selectedWeak.length : 0;
+        const highlightCount = Array.isArray(formData?.selectedHighlights) ? formData.selectedHighlights.length : 0;
+        const realNoteCount = getRealNotesList(formData).length;
+        const hasNotes = realNoteCount > 0;
+        const factDensityHint = hasNotes
+            ? `本次有${realNoteCount}条真实记录，每条都是独立事实，优先分散写自然，不要把两条强行揉成一句因果。`
+            : "本次没有额外真实记录，表达要克制，只能围绕勾选项做概括判断。";
+
+        if (mode === "vivid") {
+            return `【表达模式·生动】
+- 表达可以比真实模式更顺一点、有一点起伏，但仍然是老师发给家长的微信，不是作文。
+- 可以先下判断，再解释原因，例如“这节课主要卡在……”“现在不是完全不会，而是……”。
+- 优点不要只写“不错”，要写出它说明什么；问题不要只罗列，要写出后面为什么要盯。
+- 允许使用“能看出来”“现在卡点在”“这块后面要盯住”“基础分不能丢”等老师口吻。
+- 可以有一两句短句，让文字更像真人表达。
+- 不要煽情，不要鸡汤，不要使用“潜力无限、未来可期、持续赋能”这类空话。
+- ${factDensityHint}
+- 本次勾选了${highlightCount}个优点、${weakCount}个薄弱点，不需要全部平均展开，抓主要矛盾写。`;
+        }
+
+        return `【表达模式·真实】
+- 表达要像老师真实发给家长的微信：朴素、直接、短句多，不追求文采。
+- 不要把所有勾选的优点和缺点平均展开，只抓最主要的1个优点和1~2个问题。
+- 少用形容词，多写教学判断，例如“这块先按基础题过关处理”“讲过的题还要再练一遍”。
+- 可以使用“这节课看下来”“目前先把……处理好”“后面我会继续盯一下”等自然口吻。
+- 不要写得太圆滑，不要每一句都像总结报告。
+- 禁止比喻、煽情、漂亮话，整体要自然、克制、像人写的。
+- ${factDensityHint}
+- 本次勾选了${highlightCount}个优点、${weakCount}个薄弱点，不需要全部平均展开，重点写家长最需要知道的部分。`;
+    }
+
+    function getAntiStiffInstruction() {
+        return `【通用反僵硬要求】
+- 所有语气模式都要自然，不允许写成AI评语、工作总结或“先优点后缺点”的固定模板。
+- 少用“整体来看、总体而言、此外、同时、该生、较好地、存在一定问题、有待提高、反映出、体现了、具备较强能力、仍需进一步提升”。
+- 不要使用“这一点先保持”，这句话很容易显得生硬；需要肯定时可以写“继续保持”“这个习惯继续保持”“这块先不用太担心”。
+- 优先使用真实老师常用表达：“从作业来看”“课上看下来”“这部分”“现在的问题是”“我暂时不太担心”“要引起重视”“先把会的题做对”。
+- 问题要写得具体，不要只写“需要加强”；比如写成“方法能听懂，但自己做题时还落不下来”“讲过的题型如果还错，就要反思课后有没有整理”。
+- 不要连续三句都用同一种句式，不要每句都以“学生……”开头。
+- 允许适当使用口语化短句，例如“这块不能放松。”“先不急着拔高。”“别在会做的题上丢分。”
+- 教学内容段不要写成教材目录；学生表现段不要写成优缺点清单。`;
+    }
+
+
+    function getRealTeacherCorpusInstruction(formData) {
+        const subject = formData?.subject || "科目";
+        const grade = formData?.grade || "";
+        return `【真实老师文风提炼】
+- 参考真实反馈的写法：先给课堂或作业事实，再给教学判断，最后给一句具体要求；不要先铺一堆泛泛评价。
+- 可以直接写“从作业来看”“课上小测情况一般”“这部分内容比较强调计算”“学校进度偏快”“时间关系课上没怎么练习”等朴素表达。
+- 可以写老师自己的判断，例如“我暂时也不太担心”“这点要引起重视”“这部分短期内问题不大”“后面会继续复习这部分”，但必须基于白名单事实。
+- 真实反馈里常见的节奏是：本次内容/作业情况 → 正确率或具体卡点 → 为什么要注意 → 后续怎么做。不要写成“学生表现优秀，学习态度端正，综合能力提升明显”。
+- 允许出现适度口语化判断：“题目计算量较大”“有点支支吾吾”“这类题就不要错了”“不能总拿粗心当理由”，但不能新增白名单没有的行为。
+- ${grade}${subject}反馈要贴近学科：数学多写计算、题型分辨、分类讨论、错题整理；物理多写模型、公式应用、单位、图像、物理量含义和信息提取。
+- 如果事实少，就少写，不要硬扩写；宁愿短一点，也不要把一句话拆成很多空泛总结。`;
+    }
+
+    function getSceneWritingHints(formData) {
+        const highlights = (formData?.selectedHighlights || []).join("、");
+        const weak = (formData?.selectedWeak || []).join("、");
+        const notes = [...getRealNotesList(formData), formData?.homework, formData?.nextFocus, formData?.knowledge].filter(Boolean).join("；");
+        const all = `${highlights}；${weak}；${notes}`;
+        const hints = [];
+        const add = (text) => { if (text && !hints.includes(text)) hints.push(text); };
+
+        if (/期中|期末|考试|一模|二模|复习|考前|月考/.test(all)) add("考试/复习场景：多写会做的题别丢分、讲过多次的题型不要再错、基础分先守住；不要空喊加油。");
+        if (/计算|化简|符号|步骤|书写|单位|数量级|cm|m|答题步骤比之前规范|解题步骤不够规范/.test(all)) add("计算/步骤场景：具体写计算、符号、单位或步骤哪里不稳；如果步骤比之前规范，就写成进步点，但仍提醒继续稳住。");
+        if (/遗忘|忘记|没想起来|复述.*不出来|说不出来|前面.*忘|基础知识点有遗忘|课后缺乏复习巩固/.test(all)) add("遗忘/复习场景：写成课后复习没跟上、讲过内容要回头看；不要只写‘记忆不牢’。");
+        if (/作业.*(没|未|空|一半|不达标|支支吾吾)|完成度不达标|作业完成情况良好/.test(all)) add("作业场景：作业好就肯定课后落实；作业不达标就直接提醒完成质量和课后落实，不要绕成‘自主学习意识不足’。");
+        if (/错题未订正|主动订正错题|错题|订正|复盘/.test(all)) add("错题订正场景：主动订正要肯定；未订正要提醒错题不能只改答案，要重新独立写一遍。");
+        if (/题型|模型|分不清|有序|无序|速度角|位移角|挡板|插空|分组|分类讨论|举一反三|迁移/.test(all)) add("题型/迁移场景：写具体模型、题型边界或举一反三不足，而不是泛泛写‘逻辑能力有待加强’。");
+        if (/带着问题|学校.*没懂|校内.*问题|主动问|答疑/.test(all)) add("带问题上课场景：肯定这个习惯，因为上课效率会高；后面提醒课后要独立再写一遍。");
+        if (/听懂|方法会|方法能接上|无法独自解题|独自解题|不敢下笔|依赖老师提示|依赖提示|等老师/.test(all)) add("听懂但独立困难场景：重点写‘听懂和真正掌握不是一回事’，要训练自己起步和完整写出来。");
+        if (/互动比较积极|课上互动不积极|课堂专注度|犯困|走神|专注/.test(all)) add("课堂状态/互动场景：积极就写成课堂配合和问题暴露比较好；不积极或犯困就提醒上课要更主动，别把问题藏住。");
+        if (/进度.*快|新课|学校进度|已经开始新章节/.test(all)) add("学校进度快场景：写前面内容要及时回顾，否则新课一来容易越积越多。");
+        if (/自满|飘|放松|松懈|骄傲/.test(all)) add("考后自满场景：不要把成绩和问题强行写成因果，分开写状态要收回来、细节要稳住。");
+        if (/不够自信|不敢下笔|怕错|犹豫/.test(all)) add("不够自信场景：语气别压太重，写‘不是完全不会’，鼓励先动笔，再减少提示。");
+        return hints.length ? `【本次场景写法提示】\n- ${hints.slice(0, 6).join("\n- ")}` : "【本次场景写法提示】按真实课堂事实自然展开，不额外加戏。";
+    }
+
+    function pickRandom(items) {
+        if (!Array.isArray(items) || items.length === 0) return "";
+        return items[Math.floor(Math.random() * items.length)];
+    }
+
+    function getStyleVariationInstruction(formData) {
+        const openings = [
+            "从作业或课上练习的实际情况切入，不要先写空泛总评",
+            "先写本节课处理了什么问题，再带出学生掌握情况",
+            "先写一个家长最该知道的卡点，再补一句可保持的地方",
+            "先写考试/复习背景下最需要稳住的部分，再说后续安排",
+            "先用一句老师判断开头，例如‘这部分短期内问题不大’或‘现在主要卡在……’"
+        ];
+        const praiseWays = [
+            "表扬要落到具体习惯或题型上，例如‘带着问题来上课效率会高很多’‘基础题型能自己写出来’",
+            "肯定优点时可以接一句教学判断，如‘说明前面讲过的方法没有丢’‘这部分暂时不用太担心’",
+            "少堆‘不错、很好、值得肯定’，用‘这块过关了’‘这个习惯继续保持’更自然",
+            "如果只是普通表现，不要强行拔高；写成‘状态还可以’即可"
+        ];
+        const problemWays = [
+            "问题要像老师指出课堂卡点：‘方法能听懂，但自己算还不稳’‘题型边界还分不清’",
+            "写薄弱点时说明为什么重要：‘考试里会实打实扣分’‘讲过多次的题就不要再错’",
+            "可以直接提醒‘要引起重视’‘不能总拿粗心当理由’，但只能基于白名单事实",
+            "后续要求要具体：‘把错题再独立写一遍’‘先把基础题型练熟’‘回头看一下笔记’"
+        ];
+        const rhythmWays = [
+            "长短句交替，允许一两句很短的老师口吻，比如‘这块不能放松。’",
+            "少用连接词堆叠，不要连续‘此外/同时/后续’",
+            "一句话只解决一个意思，不把多个真实记录硬揉成因果",
+            "不要每句都完整铺开，保留真实微信反馈的简洁感"
+        ];
+        const styleId = Math.random().toString(36).slice(2, 8);
+        return `【本次表达变化指令｜${styleId}】
+- 结构变化：${pickRandom(openings)}。
+- 表扬写法：${pickRandom(praiseWays)}。
+- 问题写法：${pickRandom(problemWays)}。
+- 句式节奏：${pickRandom(rhythmWays)}。
+- 同一事实不要每次都写成同一句话；可以换连接词、换先后顺序、换句长，但不得新增事实。`;
+    }
+    function stripFeedbackForHistory(text) {
+        return normalizeFeedbackText(text || "")
+            .split("\n")
+            .filter((line, idx) => {
+                const trimmed = line.trim();
+                if (!trimmed) return false;
+                // 去掉问候语和标题行，避免“某某家长好”影响重复判断
+                if (idx === 0 && /好，这是.*课程反馈$/.test(trimmed)) return false;
+                if (idx === 0 && /\d{1,2}月\d{1,2}日.*课后反馈$/.test(trimmed)) return false;
+                return true;
+            })
+            .join("\n")
+            .replace(/教学内容：/g, "")
+            .replace(/学生表现：/g, "")
+            .replace(/改进建议：/g, "")
+            .replace(/本周作业：/g, "")
+            .trim();
+    }
+
+    function getFeedbackHistory() {
+        try {
+            const history = JSON.parse(localStorage.getItem(STORAGE_FEEDBACK_HISTORY) || "[]");
+            return Array.isArray(history) ? history.filter(item => item && item.text).slice(0, HISTORY_LIMIT) : [];
+        } catch(e) {
+            return [];
+        }
+    }
+
+    function saveFeedbackHistory(feedback, formData) {
+        const cleanText = stripFeedbackForHistory(feedback || "");
+        if (!cleanText || cleanText.length < 30) return;
+        const history = getFeedbackHistory();
+        const item = {
+            time: Date.now(),
+            studentName: formData.studentName || "",
+            subject: formData.subject || "",
+            tone: getToneMode(),
+            scenes: inferSceneTags(formData),
+            text: cleanText
+        };
+        history.unshift(item);
+        localStorage.setItem(STORAGE_FEEDBACK_HISTORY, JSON.stringify(history.slice(0, HISTORY_LIMIT)));
+    }
+
+    function clearFeedbackHistory() {
+        const count = getFeedbackHistory().length;
+        if (count === 0) { alert("当前没有历史反馈记录"); return; }
+        if (confirm(`确定清空最近${count}条历史反馈记录吗？清空后将不再用于重复检测。`)) {
+            localStorage.removeItem(STORAGE_FEEDBACK_HISTORY);
+            alert("✅ 历史反馈记录已清空");
+        }
+    }
+
+    const HISTORY_PHRASE_CANDIDATES = [
+        "课上表现良好", "学习态度端正", "继续加油", "继续保持", "这一点先保持", "这一点可以保持", "后续还需要", "还需要继续巩固",
+        "基础题型基本过关", "知识点基本都过关", "需要提醒思路", "中档偏上的题目", "状态还可以",
+        "课后要多下功夫", "要引起重视", "整体表现不错", "掌握得还可以", "这部分内容",
+        "后面继续", "不要松懈", "希望这次考试能发挥出自己的水平", "目前主要问题", "作业完成度不达标",
+        "有待提高", "基础知识点有遗忘", "计算细节", "审题细节", "基础分一定要守住"
+    ];
+
+    function countPhraseInHistory(phrase, history) {
+        return history.reduce((sum, item) => sum + ((item.text || "").includes(phrase) ? 1 : 0), 0);
+    }
+
+    function getHistoryAvoidPhrases() {
+        const history = getFeedbackHistory();
+        if (history.length < 3) return [];
+        return HISTORY_PHRASE_CANDIDATES
+            .map(phrase => ({ phrase, count: countPhraseInHistory(phrase, history) }))
+            .filter(item => item.count >= 2)
+            .sort((a,b) => b.count - a.count)
+            .slice(0, 8);
+    }
+
+    function extractFeedbackSentences(text) {
+        return stripFeedbackForHistory(text || "")
+            .replace(/\n/g, "。")
+            .split(/[。！？!?；;]/)
+            .map(s => s.trim().replace(/\s+/g, ""))
+            .filter(s => s.length >= 10 && s.length <= 65)
+            .filter(s => !/^本周作业/.test(s));
+    }
+
+    function charBigrams(str) {
+        const s = (str || "").replace(/[\s，。！？；：,.!?;:]/g, "");
+        const set = new Set();
+        for (let i = 0; i < s.length - 1; i++) set.add(s.slice(i, i + 2));
+        return set;
+    }
+
+    function sentenceSimilarity(a, b) {
+        const A = charBigrams(a), B = charBigrams(b);
+        if (A.size === 0 || B.size === 0) return 0;
+        let inter = 0;
+        A.forEach(x => { if (B.has(x)) inter++; });
+        return inter / Math.max(A.size, B.size);
+    }
+
+    function getHistoryPromptBlock(formData) {
+        const history = getFeedbackHistory();
+        const avoidItems = getHistoryAvoidPhrases();
+        if (history.length === 0) {
+            return "【历史重复提醒】暂无历史反馈记录，本次正常生成。";
+        }
+        const avoidText = avoidItems.length
+            ? avoidItems.map(item => `“${item.phrase}”（近${history.length}条出现${item.count}次）`).join("、")
+            : "暂无明显高频重复句";
+        return `【历史重复提醒】本地已保存最近${history.length}条反馈。本次要尽量避开近期高频表达：${avoidText}。\n处理方式：不要删事实，只换表达顺序、连接词和句式；尤其避免连续使用“课上表现良好、学习态度端正、继续加油、后续还需要”这类模板句。`;
+    }
+
+    function getHistoricalRepeatReport(feedback, formData) {
+        const history = getFeedbackHistory();
+        if (history.length < 2) {
+            return { severe: false, message: "历史样本较少，暂不做强重复判断", overusedPhrases: [], similarSentences: [] };
+        }
+        const clean = stripFeedbackForHistory(feedback || "");
+        const overusedPhrases = getHistoryAvoidPhrases()
+            .filter(item => clean.includes(item.phrase))
+            .map(item => item.phrase);
+
+        const currentSentences = extractFeedbackSentences(clean);
+        const previousSentences = history.flatMap(item => extractFeedbackSentences(item.text || ""));
+        const similarSentences = [];
+        let maxScore = 0;
+        for (const sentence of currentSentences) {
+            for (const prev of previousSentences) {
+                const score = sentenceSimilarity(sentence, prev);
+                if (score > maxScore) maxScore = score;
+                if (score >= 0.86) {
+                    similarSentences.push(sentence);
+                    break;
+                }
+            }
+            if (similarSentences.length >= 3) break;
+        }
+        const severe = overusedPhrases.length >= 3 || similarSentences.length >= 2 || maxScore >= 0.92;
+        let message = "历史检验通过，未发现明显重复";
+        if (overusedPhrases.length || similarSentences.length) {
+            const parts = [];
+            if (overusedPhrases.length) parts.push(`高频短语：${overusedPhrases.slice(0,4).join("、")}`);
+            if (similarSentences.length) parts.push(`相似句${similarSentences.length}处`);
+            message = parts.join("；");
+        }
+        return { severe, message, overusedPhrases, similarSentences, maxScore };
+    }
+
+    function getToneMode() {
+        return document.querySelector('input[name="toneStyle"]:checked')?.value || "neutral";
+    }
+
+    function getToneInstruction() {
+        const tone = getToneMode();
+        if (tone === "encourage") {
+            return `【语气倾向·鼓励】
+- 适用场景：学生有进步、基础题过关、愿意提问、愿意尝试，或正确率一般但态度能跟上。
+- 表达方式：先肯定具体变化，再提醒一个最要紧的问题。可以写“最近状态不错”“这部分不用太担心”“继续保持”，但不要无依据拔高。
+- 鼓励不是鸡汤，最好落到具体动作：把题再独立写一遍、把计算细节稳住、别在会做的题上丢分。
+- 禁止：不要把普通表现写成“非常棒”；不要连续堆叠“不错、很好、值得表扬”。正确率低于90%时仍禁止“非常棒”“值得表扬”。`;
+        }
+        if (tone === "critical") {
+            return `【语气倾向·批评】
+- 适用场景：作业完成差、讲过内容遗忘快、课后不复习、低级错误多、态度松懈、自满。
+- 表达方式：先点主要问题，再说明后果，最后给明确要求。可以写“要引起重视”“听懂和掌握不是一回事”“不能总拿粗心当理由”。
+- 批评要像老师提醒家长，不要绕成漂亮话；但不辱骂、不上升人格，只批评白名单事实。
+- 禁止：不自行编造迟到、没写作业、玩游戏、家长督促等细节，除非白名单明确提供。`;
+        }
+        return `【语气倾向·平和】
+- 适用场景：有优点也有问题，整体表现正常，需要给家长同步真实情况。
+- 表达方式：像日常反馈一样写“这节课做了什么—哪里能跟上—哪里还不稳—后面怎么处理”。
+- 可以有老师自己的判断，如“我暂时不太担心”“现在先不急着拔高”“这块短期内问题不大”，但必须基于事实。
+- 禁止：不要写成模板化总结，不要每句都用“整体来看”“此外”。`;
+    }
+
+    function getToneExampleBlock(formData) {
+        const tone = getToneMode();
+        const encourageExamples = `【本次只参考：鼓励型真实风格示例】
+示例1（正确率高 + 基础题过关）：学生表现：这节课进行得很顺利，基础题都能自己写出来，说明前面讲过的方法没有丢。解题思路也比较清楚，不需要老师提示。后面主要把计算细节和步骤规范再稳一稳，别在会做的题上丢分。最近状态不错，继续保持。
+示例2（带着问题来上课）：学生表现：这次是带着学校里没弄懂的问题来的，上课的效率会高很多，这点非常棒。课上把题目涉及到的知识点拆开以后，能看出来他对题目的理解更进一步了。课后要把题目再独立写一遍，不能只停留在听懂。把问题都弄懂了，成绩自然就上去了。
+示例3（不够自信但愿意尝试）：学生表现：一开始做题不太敢下笔，总担心自己思路不对。课上带着他把条件一步步列出来以后，其实能往下推，说明也不是完全不会。后面要多独立解题，不能一直等老师提示，这样才能有进步。学习的态度很好，自信一点。
+示例4（有进步但还不稳定）：学生表现：学生最近的状态明显要好了一点，做题的正确率有进步，讲过的题目和基础题都能动手做了。但还是有点不稳定，需要继续刷题巩固，把正确率稳下来后，我们就开始攻克中档题，一步一步来，继续加油。
+示例5（学习态度端正）：学生表现：课上的表现很不错，积极配合老师，学习态度端正。保持这个学习的劲头，成绩一定会上去的，加油！`;
+
+        const neutralExamples = `【本次只参考：平和型真实风格示例】
+示例1（基础薄弱但态度正常）：学生表现：这节课看下来，基础部分还能跟着走，但有些知识点反应不算快。课堂状态正常，能听讲，也能配合完成练习。现在先不急着拔高，先把基础题型和常用方法练熟，后面再慢慢加综合题。
+示例2（方法会但计算不稳）：学生表现：方法层面不是完全不会，课上讲到关键步骤时能接上。但一到自己算，容易在化简、符号和步骤上出问题，正确率就被拉下来了。后面重点不是再讲很多新方法，而是把已经会的方法真正算对、写完整。
+示例3（考后有些自满）：学生表现：期中考得不错之后，状态上有点放松，课上主动性没有之前那么高。知识点和方法不是没有基础，但做题时细节不够稳，容易把会的题做错。接下来要把状态收回来，基础分不能因为松懈丢掉。
+示例4（知识点遗忘较多）：学生表现：最近上新课，导致前面讲解的知识点和题型遗忘较多，一些以前能轻松拿下的题目，现在有点动不了手。课后要注意巩固，不要学了忘，忘了学的。学习态度没什么大问题，多下点功夫就好。
+示例5（题型分辨不清）：学生表现：学习有点停留在表面，自认为懂了但其实学得很浅。一些模型例如速度角和位移角在具体的题目里就分不清用哪个了，课上除了按部就班的记笔记做题外，还要多思考，多提问。
+示例6（复习阶段，守基础分）：学生表现：现在临近考试，最需要注意的是稳定性。基础题型基本能做出来，但计算、审题和步骤规范还不能完全放松。难题能拿多少是多少，先把会做的题做对，把基础分守住。`;
+
+        const criticalExamples = `【本次只参考：批评型真实风格示例】
+示例1（作业完成差 + 明确要求）：学生表现：这次作业完成度不达标，没有按照老师的要求完成任务，一周的时间其实绰绰有余。要端正学习态度，学习作业太多也能理解，但还是要积极完成老师的作业。
+示例2（课后不复习）：学生表现：课后的复习巩固明显不够，上次讲过的例题这次再让他复述，还是说不出来。听懂和真正掌握不是一回事，课后如果不自己过一遍，很快就会忘，这点要引起重视。
+示例3（低级错误多）：学生表现：这节课的练习学生不是完全不会做，但低级错误比较多，尤其是审题和计算，这里错一点那里错一点，导致正确率偏低。如果考试还这样，那成绩自然就不理想。不能觉得自己会了只是粗心而已，要引起重视！
+示例4（有些自满，需要收状态）：学生表现：前面考得还可以之后，状态有点飘，上课的专注度明显比不上之前了。学习是一个漫长的过程，考得好的确可以开心一下，但千万不要骄傲自满。后面好好调整，尽快把心收回来。
+示例5（真实反馈参考：讲过多次还错）：学生表现：这类题最近已经练过几次，但这次独立做的时候还是没能写出来。如果只是听懂，课后不重新整理，过一周还是会忘。讲过多次的题型如果还出错，就需要反思一下课后有没有真正按要求老师进行归纳总结。`;
+
+        if (tone === "encourage") return encourageExamples;
+        if (tone === "critical") return criticalExamples;
+        return neutralExamples;
+    }
+
+    function getWordCountRange() {
+        const val = parseInt(document.getElementById("wordCountSelect").value, 10);
+        // 字数档位收紧：以前允许 max + 50，250 字档容易跑到 320+。
+        // 这里的范围只控制正文（教学内容 + 学生表现 + 改进建议），不包含问候语、标题行和本周作业。
+        if (val === 150) return [125, 165];
+        if (val === 200) return [175, 215];
+        if (val === 250) return [225, 265];
+        if (val === 300) return [270, 315];
+        if (val === 350) return [315, 365];
+        if (val === 400) return [360, 420];
+        return [270, 315];
+    }
+
+    function normalizeRealNotesList(notes) {
+        let rawItems = [];
+        if (Array.isArray(notes)) {
+            rawItems = notes;
+        } else if (typeof notes === "string") {
+            rawItems = notes.split(/\n|；|;/);
+        }
+        return rawItems
+            .map(item => String(item || "")
+                .replace(/^\s*[（(]?\d+[）).、:：\s-]*/g, "")
+                .replace(/\s+/g, " ")
+                .trim())
+            .filter(Boolean)
+            .filter((item, idx, arr) => arr.indexOf(item) === idx)
+            .slice(0, 4);
+    }
+
+    function collectRealNotesFromInputs() {
+        const inputs = Array.from(document.querySelectorAll(".real-note-input"));
+        if (inputs.length > 0) {
+            return normalizeRealNotesList(inputs.map(input => input.value));
+        }
+        const oldInput = document.getElementById("realNotes");
+        return normalizeRealNotesList(oldInput ? oldInput.value : "");
+    }
+
+    function getRealNotesList(formData) {
+        return normalizeRealNotesList(formData?.realNotesList || formData?.realNotes || "");
+    }
+
+    function formatRealNotesForPrompt(formData) {
+        const list = getRealNotesList(formData);
+        if (!list.length) return "无额外具体事件记录";
+        return list.map((item, idx) => `${idx + 1}. ${item}`).join("\n");
+    }
+
+    function getFormData() {
+        const studentName = document.getElementById("studentName").value.trim() || "这位同学";
+        const gender = document.getElementById("studentGender").value;
+        const grade = document.getElementById("grade").value;
+        const subject = document.getElementById("subject").value;
+        let date = document.getElementById("date").value;
+        if (!date) { const d = new Date(); date = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+        const knowledge = document.getElementById("knowledge").value.trim() || "本节课内容";
+        const homework = document.getElementById("homework").value.trim();
+        const nextFocus = document.getElementById("nextFocus")?.value.trim() || "";
+        const realNotesList = collectRealNotesFromInputs();
+        const realNotes = realNotesList.join("；");
+        // “学生整体表现 / 互动积极性”已从表单移除：这类粗颗粒度选项容易和“优点、缺点、真实情况”重复，
+        // 生成时改由具体事实自动判断，避免用户多填两项但信息增量不高。
+        const performance = "";
+        const interaction = "";
+        let correctness = null; if(document.getElementById("enableCorrectnessCheckbox").checked) correctness = parseInt(document.getElementById("correctnessSlider").value);
+        const selectedHighlights = Array.from(document.querySelectorAll('.highlight-cb:checked')).map(cb => cb.value);
+        const selectedWeak = Array.from(document.querySelectorAll('.weak-cb:checked')).map(cb => cb.value);
+        const selectedSuggestion = document.getElementById("suggestionSelect").value;
+        const shouldGenerateSuggestion = (selectedSuggestion && selectedSuggestion !== "");
+        let selectedEncouragement = "";
+        const checkedRadio = document.querySelector('input[name="encouragementRadio"]:checked');
+        if (checkedRadio) selectedEncouragement = checkedRadio.value;
+        const greetingTarget = document.getElementById("greetingTarget").value;
+        const greetingTime = document.getElementById("greetingTime").value;
+        const enableGreeting = document.getElementById("enableGreetingCheckbox").checked;
+        return { studentName, gender, grade, date, subject, knowledge, homework, nextFocus, performance, interaction, correctness, selectedHighlights, selectedWeak, selectedSuggestion, shouldGenerateSuggestion, realNotes, realNotesList, selectedEncouragement, greetingTarget, greetingTime, enableGreeting };
+    }
+
+
+    function clearRequiredErrors() {
+        document.querySelectorAll(".field-error").forEach(el => el.classList.remove("field-error"));
+        document.querySelectorAll(".required-section.has-error").forEach(el => el.classList.remove("has-error"));
+        const box = document.getElementById("requiredErrorMessage");
+        if (box) {
+            box.style.display = "none";
+            box.innerText = "";
+        }
+    }
+
+    function markRequiredError(target, groupName) {
+        if (target) target.classList.add("field-error");
+        const section = groupName
+            ? document.querySelector(`.required-section[data-required-group="${groupName}"]`)
+            : (target ? target.closest(".required-section") : null);
+        if (section) section.classList.add("has-error");
+    }
+
+    function validateRequiredFields(formData) {
+        clearRequiredErrors();
+        const issues = [];
+        const studentNameInput = document.getElementById("studentName");
+        const knowledgeInput = document.getElementById("knowledge");
+        const studentNameRaw = (studentNameInput?.value || "").trim();
+        const knowledgeRaw = (knowledgeInput?.value || "").trim();
+
+        if (!studentNameRaw) {
+            issues.push("学生信息：请填写学生姓名");
+            markRequiredError(studentNameInput, "student");
+        }
+        if (!knowledgeRaw) {
+            issues.push("本节课内容：请填写核心知识点或课堂内容");
+            markRequiredError(knowledgeInput, "knowledge");
+        }
+        if (!Array.isArray(formData.selectedHighlights) || formData.selectedHighlights.length === 0) {
+            issues.push("学生优点：请至少勾选 1 个优点");
+            markRequiredError(document.getElementById("highlightsCheckboxArea"), "highlights");
+        }
+        if (!Array.isArray(formData.selectedWeak) || formData.selectedWeak.length === 0) {
+            issues.push("学生缺点：请至少勾选 1 个缺点/问题点");
+            markRequiredError(document.getElementById("weakPointsCheckboxArea"), "weakpoints");
+        }
+        const box = document.getElementById("requiredErrorMessage");
+        if (issues.length && box) {
+            box.style.display = "block";
+            box.innerHTML = `⚠️ 生成前请先补全必填项：<br>${issues.map(item => `• ${item}`).join("<br>")}`;
+            const firstError = document.querySelector(".field-error, .required-section.has-error");
+            if (firstError) firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return { ok: issues.length === 0, issues };
+    }
+
+    function validateQuickRequiredFields() {
+        clearRequiredErrors();
+        const issues = [];
+        const studentNameInput = document.getElementById("studentName");
+        const knowledgeInput = document.getElementById("knowledge");
+        const studentNameRaw = (studentNameInput?.value || "").trim();
+        const knowledgeRaw = (knowledgeInput?.value || "").trim();
+        if (!studentNameRaw) {
+            issues.push("学生信息：请填写学生姓名");
+            markRequiredError(studentNameInput, "student");
+        }
+        if (!knowledgeRaw) {
+            issues.push("本节课内容：请填写核心知识点或课堂内容");
+            markRequiredError(knowledgeInput, "knowledge");
+        }
+        const box = document.getElementById("requiredErrorMessage");
+        if (issues.length && box) {
+            box.style.display = "block";
+            box.innerHTML = `⚠️ 快速生成前请先补全：<br>${issues.map(item => `• ${item}`).join("<br>")}`;
+            const firstError = document.querySelector(".field-error, .required-section.has-error");
+            if (firstError) firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return { ok: issues.length === 0, issues };
+    }
+
+    function getQuickPreset(studentType, direction) {
+        const type = studentType || "普通学生";
+        const dir = direction || "表扬鼓励";
+        const presets = {
+            "学霸|表扬鼓励": {
+                highlights: ["基础题型基本过关", "讲过的方法能用出来", "能独立完成中档题", "解题思路清晰，能讲出来", "正确率较高"],
+                weak: ["解题步骤不够规范", "缺乏举一反三的能力"],
+                realNotes: ["课上能比较快接上老师思路", "基础题和中档题完成得比较顺"],
+                toneHint: "以肯定为主，提醒细节规范和变式题继续提升。"
+            },
+            "学霸|批评提醒": {
+                highlights: ["基础题型基本过关", "解题思路清晰，能讲出来", "正确率较高"],
+                weak: ["有些自满", "审题不够细心", "解题步骤不够规范"],
+                realNotes: ["整体基础不差，但细节上有放松", "会做的题也要把步骤写稳"],
+                toneHint: "基础可以肯定，但要直接提醒不能因为会做就放松细节。"
+            },
+            "普通学生|表扬鼓励": {
+                highlights: ["讲过的方法能用出来", "状态比之前好一些", "学习态度端正", "课上互动比较积极"],
+                weak: ["做题正确率不稳定", "中难题需要提醒思路", "课后缺乏复习巩固"],
+                realNotes: ["课上能跟着老师思路走", "中档题还需要多练几遍才稳"],
+                toneHint: "先肯定正常状态和愿意配合，再提醒稳定性。"
+            },
+            "普通学生|批评提醒": {
+                highlights: ["学习态度端正", "讲过的方法能用出来"],
+                weak: ["讲过的题型还不能独立写出", "做题正确率不稳定", "依赖老师提示", "课后缺乏复习巩固"],
+                realNotes: ["听课能跟上，但自己完整写出来还不够稳", "课后需要把讲过的题重新独立做一遍"],
+                toneHint: "语气直接一点，重点提醒听懂不等于掌握。"
+            },
+            "学渣|表扬鼓励": {
+                highlights: ["学习态度端正", "状态比之前好一些", "课上互动比较积极"],
+                weak: ["基础知识点有遗忘", "讲过的题型还不能独立写出", "计算容易出错", "课后缺乏复习巩固"],
+                realNotes: ["基础还需要补，但课上愿意跟着走", "简单题先争取稳定做对"],
+                toneHint: "先抓住一点可肯定的状态，再把基础和课后复习说清楚。"
+            },
+            "学渣|批评提醒": {
+                highlights: ["学习态度端正"],
+                weak: ["基础知识点有遗忘", "讲过的题型还不能独立写出", "听懂了但是还是无法独自解题", "依赖老师提示", "课后缺乏复习巩固"],
+                realNotes: ["基础题型还不够稳", "听懂以后还需要自己重新写出来"],
+                toneHint: "问题要说清楚，但不要打击学生；重点提醒基础和课后落实。"
+            }
+        };
+        return presets[`${type}|${dir}`] || presets["普通学生|表扬鼓励"];
+    }
+
+    function buildQuickFormData(baseFormData) {
+        const studentType = document.getElementById("quickStudentType")?.value || "普通学生";
+        const direction = document.getElementById("quickFeedbackDirection")?.value || "表扬鼓励";
+        const preset = getQuickPreset(studentType, direction);
+        const hasManualHighlights = Array.isArray(baseFormData.selectedHighlights) && baseFormData.selectedHighlights.length > 0;
+        const hasManualWeak = Array.isArray(baseFormData.selectedWeak) && baseFormData.selectedWeak.length > 0;
+        const hasManualNotes = Array.isArray(baseFormData.realNotesList) && baseFormData.realNotesList.length > 0;
+        const selectedHighlights = hasManualHighlights ? baseFormData.selectedHighlights : preset.highlights;
+        const selectedWeak = hasManualWeak ? baseFormData.selectedWeak : preset.weak;
+        const realNotesList = hasManualNotes ? baseFormData.realNotesList : preset.realNotes;
+        return {
+            ...baseFormData,
+            selectedHighlights,
+            selectedWeak,
+            realNotesList,
+            realNotes: realNotesList.join("；"),
+            quickMode: true,
+            quickStudentType: studentType,
+            quickDirection: direction,
+            quickToneHint: preset.toneHint,
+            shouldGenerateSuggestion: baseFormData.shouldGenerateSuggestion,
+            selectedSuggestion: baseFormData.selectedSuggestion
+        };
+    }
+
+    function buildQuickGenerateMessages(formData) {
+        const pronoun = formData.gender === "女" ? "她" : "他";
+        const hasHomework = formData.homework && formData.homework.trim() !== "";
+        const includeImprove = formData.shouldGenerateSuggestion && formData.selectedSuggestion;
+        const [minWords, maxWords] = getWordCountRange();
+        const direction = formData.quickDirection || "表扬鼓励";
+        const studentType = formData.quickStudentType || "普通学生";
+        const sceneText = inferSceneTags(formData).join("；") || "常规课后反馈";
+        const correctnessText = formData.correctness !== null ? `正确率约${formData.correctness}%` : "未填写正确率";
+        const systemPrompt = `你是一位${formData.grade}${formData.subject}老师，正在给家长快速生成课后反馈。\n\n这是“快速生成”：用户只给了学生类型和反馈方向，提示词会比较笼统。你可以根据学生类型和本节课内容，合理补充1~2个常见、泛化的课堂事实，例如“基础题能跟上”“中档题还需要提示”“计算和步骤还不够稳”“课后需要把讲过的题重新写一遍”。\n\n但要注意：\n1. 可以轻微泛化，不能编造具体分数、具体题号、迟到、玩手机、没写作业、家长督促、严重态度问题。\n2. “学霸/学渣/普通学生”只是内部生成参考，正文里绝对不要出现这些词。\n3. 最终反馈格式不变：${formData.enableGreeting ? "不要输出标题行，直接从“教学内容：”开始" : `第一行输出“${formData.studentName}${formatDateForTitle(formData.date)}${formData.subject}课后反馈”`}。\n4. 必须有“教学内容：”和“学生表现：”。${includeImprove ? "可以有“改进建议：”。" : "不要生成“改进建议：”。"}${hasHomework ? "最后必须单独输出“本周作业：用户填写的作业”。" : "不要生成作业段落。"}\n5. 语言像老师顺手发微信，别写成报告，少用“整体来看、总体而言、存在一定问题、反映出、体现了”。\n6. 字数控制在${minWords}~${maxWords}字左右（不含问候语、标题行和作业）。\n7. 人称统一用“${pronoun}”。\n\n输出时不要解释过程，直接输出完整反馈。`;
+
+        const userPrompt = `学生：${formData.studentName}（${formData.gender}）\n年级：${formData.grade}\n科目：${formData.subject}\n日期：${formatDateForTitle(formData.date)}\n本节课内容：${formData.knowledge}\n快捷学生类型：${studentType}（内部参考，正文不要出现这个词）\n快捷反馈方向：${direction}\n快捷语气提示：${formData.quickToneHint || "按老师真实反馈写"}\n可用优点方向：${(formData.selectedHighlights || []).join("、")}\n可用问题方向：${(formData.selectedWeak || []).join("、")}\n可用课堂事实：${formatRealNotesForPrompt(formData)}\n正确率：${correctnessText}\n自动识别情景：${sceneText}\n${includeImprove ? `改进方向：${formData.selectedSuggestion}` : "不生成改进建议"}\n${hasHomework ? `作业：${formData.homework}（最后一行必须原样写成“本周作业：${formData.homework}”）` : "不生成作业段落"}\n\n请按固定格式生成：\n教学内容：围绕“${formData.knowledge}”写2个左右相关子内容，不要写成教材目录。\n学生表现：根据学生类型和反馈方向快速写一段真实老师风格反馈。${direction === "批评提醒" ? "问题说具体一点，但不要攻击学生。" : "先肯定具体表现，再温和提醒一个问题。"}\n${includeImprove ? "改进建议：25~45字，针对主要薄弱点。\n" : ""}${hasHomework ? `本周作业：${formData.homework}\n` : ""}\n${formData.enableGreeting ? "不要输出标题行。" : `第一行必须是“${formData.studentName}${formatDateForTitle(formData.date)}${formData.subject}课后反馈”。`}`;
+
+        return [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+        ];
+    }
+
+    async function generateQuickFeedbackWithDeepSeek(formData, apiKey) {
+        let messages = buildQuickGenerateMessages(formData);
+        let lastFeedback = "";
+        let lastReport = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+            lastFeedback = await callDeepSeek(apiKey, messages, attempt === 0 ? 0.55 : 0.38);
+            lastFeedback = postProcessFeedback(lastFeedback, formData, { rounds: 1 });
+            if (!formData.enableGreeting) {
+                const titlePattern = new RegExp(`^${escapeRegExp(formData.studentName)}${escapeRegExp(formatDateForTitle(formData.date))}${escapeRegExp(formData.subject)}课后反馈`);
+                if (!titlePattern.test(lastFeedback)) {
+                    lastFeedback = `${formData.studentName}${formatDateForTitle(formData.date)}${formData.subject}课后反馈\n${lastFeedback}`;
+                }
+            } else {
+                const titlePattern = new RegExp(`^${escapeRegExp(formData.studentName)}${escapeRegExp(formatDateForTitle(formData.date))}${escapeRegExp(formData.subject)}课后反馈\\s*\\n?`, 'g');
+                lastFeedback = lastFeedback.replace(titlePattern, "");
+            }
+            lastFeedback = ensureHomeworkLine(lastFeedback, formData);
+            lastReport = validateFeedback(lastFeedback, formData);
+            if (lastReport.ok) return lastFeedback;
+            const [minW, maxW] = getWordCountRange();
+            messages = [
+                ...buildQuickGenerateMessages(formData),
+                { role: "assistant", content: lastFeedback },
+                { role: "user", content: `上一版有这些问题：${lastReport.issues.join("；")}。请保持快速生成的快捷风格，但修正格式和字数：正文${minW}~${maxW}字；必须有教学内容和学生表现；${formData.homework ? "作业最后一行原样保留。" : "不要生成作业。"}不要输出学霸、学渣、普通学生这些内部标签。直接输出完整反馈。` }
+            ];
+        }
+        return lastFeedback || "";
+    }
+
+    async function onQuickGenerate() {
+        const requiredReport = validateQuickRequiredFields();
+        if (!requiredReport.ok) return;
+        const apiKey = localStorage.getItem(STORAGE_API_KEY);
+        if (!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
+
+        const baseFormData = getFormData();
+        const formData = buildQuickFormData(baseFormData);
+        const btn = document.getElementById("quickGenerateBtn");
+        const resultDiv = document.getElementById("feedbackContent");
+        const qualityEl = document.getElementById("qualityReport");
+        const original = btn ? btn.innerText : "快速生成";
+        if (resultDiv) {
+            resultDiv.innerText = "📡 正在调用 AI 快速生成反馈...";
+            resultDiv.closest(".result-card")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        if (qualityEl) { qualityEl.style.display = "none"; qualityEl.innerText = ""; }
+        try {
+            if (btn) { btn.innerText = "生成中..."; btn.disabled = true; }
+            upsertCurrentStudentProfile(false);
+            let feedback = await generateQuickFeedbackWithDeepSeek(formData, apiKey);
+            let finalText = feedback;
+            if (formData.enableGreeting) {
+                const greeting = `${formData.studentName}${formData.greetingTarget}${formData.greetingTime}好，这是${formData.studentName}${formatDateForTitle(formData.date)}${formData.subject}课程反馈`;
+                finalText = `${greeting}\n${feedback}`;
+            }
+            if (resultDiv) resultDiv.innerText = finalText;
+            lastGeneratedFormData = formData;
+            const finalReport = validateFeedback(feedback, formData);
+            const historyReport = getHistoricalRepeatReport(feedback, formData);
+            saveFeedbackHistory(feedback, formData);
+            if (qualityEl) {
+                qualityEl.style.display = "block";
+                const reviewItems = getReportReviewItems(finalReport);
+                if (historyReport.severe) reviewItems.push(`历史重复度偏高：${historyReport.message}`);
+                const okAll = finalReport.ok && !historyReport.severe && reviewItems.length === 0;
+                qualityEl.className = `quality-report ${okAll ? "ok" : "warn"}`;
+                if (reviewItems.length) {
+                    qualityEl.innerText = `⚠️ 快速生成完成，建议看一下：${reviewItems.join("；")}；历史检验：${historyReport.message}`;
+                } else {
+                    qualityEl.innerText = `✅ 快速生成完成：正文字数${finalReport.totalLen}，学生表现${finalReport.performanceLen}字；历史检验：${historyReport.message}`;
+                }
+            }
+        } catch (err) {
+            if (resultDiv) resultDiv.innerText = `❌ 快速生成失败：${err.message || "未知错误"}`;
+            if (qualityEl) {
+                qualityEl.style.display = "block";
+                qualityEl.className = "quality-report warn";
+                qualityEl.innerText = `错误详情：${err.message || "未知错误"}`;
+            }
+            alert(`快速生成失败：${err.message || "未知错误"}`);
+        } finally {
+            if (btn) { btn.innerText = original; btn.disabled = false; }
+        }
+    }
+
+    function formatDateForTitle(dateStr) {
+        const match = String(dateStr || "").match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (match) return `${parseInt(match[2], 10)}月${parseInt(match[3], 10)}日`;
+        const d = new Date(dateStr || Date.now());
+        if (!isNaN(d.getTime())) return `${d.getMonth() + 1}月${d.getDate()}日`;
+        const today = new Date();
+        return `${today.getMonth() + 1}月${today.getDate()}日`;
+    }
+
+    function inferSceneTags(formData) {
+        const tags = [];
+        const highlights = (formData.selectedHighlights || []).join("、");
+        const weak = (formData.selectedWeak || []).join("、");
+        const realNotesList = getRealNotesList(formData);
+        const notes = [...realNotesList, formData.homework, formData.nextFocus].filter(Boolean).join("；");
+        const all = `${highlights}；${weak}；${notes}`;
+        const compact = all.replace(/\s+/g, "");
+        const add = (tag) => { if (tag && !tags.includes(tag)) tags.push(tag); };
+
+        // 优点类场景：和最终默认优点保持一致。
+        if (/基础题型基本过关|讲过的方法能用出来/.test(highlights)) add("基础题型基本过关，可以肯定方法掌握，但不要夸张拔高");
+        if (/能独立完成中档题|解题思路清晰/.test(highlights)) add("思路比较清楚，能逐步过渡到中档题或完整表达训练");
+        if (/带着问题来上课|主动问|主动提问|答疑/.test(highlights + notes)) add("能带着问题上课，课堂效率较高，课后要独立再写一遍");
+        if (/状态比之前好一些/.test(highlights)) add("状态有改善，适合鼓励但不要夸张");
+        if (/学习态度端正/.test(highlights)) add("学习态度正常，可作为保底肯定但不要过度拔高");
+        if (/笔记整理得不错|笔记.*(不错|完整|清楚|认真)|整理.*笔记/.test(highlights + notes)) add("笔记整理有可保持的地方，但要转化成做题稳定性");
+        if (/作业完成情况良好/.test(highlights)) add("课后落实情况较好，可以自然肯定作业完成情况");
+        if (/课上互动比较积极|课堂专注度较好/.test(highlights)) add("课堂配合和专注度较好，可以写成上课能跟住、愿意回应");
+        if (/主动订正错题/.test(highlights + notes)) add("能主动订正错题，说明有复盘意识，但要提醒不能只改答案");
+        if (/答题步骤比之前规范/.test(highlights + notes)) add("答题步骤有进步，可以肯定规范性变好，同时提醒继续稳住");
+        if (/正确率较高/.test(highlights) || (formData.correctness !== null && formData.correctness >= 85)) add("正确率较高，整体掌握不错，但仍要看是否稳定");
+
+        // 薄弱点与真实记录场景：和最终默认缺点保持一致，同时兼容用户手写真实情况。
+        if (/基础知识点有遗忘|课后缺乏复习巩固|遗忘|忘记|没想起来|前面.*忘/.test(all)) add("讲过内容有遗忘，课后复习和回顾需要加强");
+        if (/讲过的题型还不能独立写出|讲过.*不能独立|讲过.*不会写|讲过.*还错/.test(all)) add("讲过题型还不能独立写出，要回到题型方法和独立复现");
+        if (/公式应用不熟|公式.*应用不熟|公式.*不会用|公式.*代不进去/.test(all)) add("公式记忆可能有基础，但题目应用还不够熟练");
+        if (/做题正确率不稳定/.test(all) || (formData.correctness !== null && formData.correctness >= 60 && formData.correctness < 85)) add("正确率中等或不稳定，需要提升稳定性");
+        if (/中难题需要提醒思路|中档题需要提醒思路|需要提醒|依赖老师提示|依赖提示|不靠提示|不能独立/.test(all)) add("中难题或完整题需要减少提示，训练独立起步和完整表达");
+        if (/题目信息提取困难|读不懂题目意思|信息提取|读题.*困难|条件.*找不到/.test(all)) add("题目阅读和信息提取能力需要加强");
+        if (/听懂了但是还是无法独自解题|听懂.*无法.*独自|听懂.*不会做|听懂.*做不出|方法会了?但.*(做不出来|算不出来|落不下来)|方法能听懂/.test(compact)) add("听懂方法到独立做对之间有断层，重点写落笔、计算和完整步骤");
+        if (/计算容易出错|计算.*错|化简.*错|符号.*错|低级错误/.test(all)) add("会做的题容易因为计算细节丢分");
+        if (/审题不够细心|审题.*(不细|漏看)|条件.*漏/.test(all)) add("审题细节不稳，容易漏条件或看错要求");
+        if (/解题步骤不够规范|步骤.*(跳步|漏写|不规范)|符号.*漏|化简.*跳/.test(all)) add("大题步骤、符号和书写规范会影响得分，需要单独提醒");
+        if (/做题速度偏慢|速度慢|来不及|时间不够/.test(all)) add("做题速度偏慢，需要提高熟练度和时间分配");
+        if (/错题未订正|错题.*没.*订正|没有订正错题|订正.*不到位/.test(all)) add("错题订正不到位，需要重新独立写一遍，而不是只看答案");
+        if (/缺乏举一反三的能力|举一反三|迁移能力|换个问法|变式/.test(all)) add("知识点迁移和变式能力偏弱，需要从同类题归纳方法");
+        if (/作业完成度不达标|作业.*(没写|没完成|只做了一半|质量差|不达标)/.test(all)) add("课后任务落实不到位，需要明确提醒作业质量和完成度");
+        if (/课上互动不积极|上课有些犯困|犯困|走神|互动.*不积极|不主动问|不太主动|积极性一般/.test(all)) add("课堂状态或互动不够理想，需要更主动暴露问题");
+        if (/有些自满|自满|有点飘|飘了|考得不错.*飘|考好.*放松|松懈|骄傲/.test(all)) add("阶段性表现后有些自满，表达时要提醒把状态收回来");
+        if (/不够自信|没信心|不敢下笔|怕错|犹豫|总等老师|等提示/.test(all)) add("信心不足或依赖提示，需要鼓励独立尝试，语气不要压太重");
+        if (/学校进度.*快|进度.*偏快|新章节|新课/.test(all)) add("学校进度较快时，提醒前面内容要及时回顾，避免新旧内容断层");
+        if (/速度角|位移角|小船渡河|左右手|楞次|变压器|圆锥曲线|导数|数列|排列组合|二项式|直线方程/.test(all + formData.knowledge)) add("出现具体模型或章节时，优先围绕具体题型写，不要泛泛写能力问题");
+        if (/物理量|字母|单位|数量级|cm|m|图像|读图|信息.*多|干扰条件/.test(all)) add("物理题要提醒模型、单位、图像和信息提取，写得具体一点");
+        if (/手机搜题|搜题/.test(all)) add("作业如果借助搜题，要提醒暴露真实问题，不能把错题藏起来");
+        if (formData.correctness !== null && formData.correctness < 60) add("正确率偏低，需要优先巩固基础");
+        if (/期中|期末|一模|二模|考试|考前|复习|月考/.test(all + formData.knowledge)) add("考试或复习阶段，表达时要强调基础分、稳定性和讲过题型不要再错");
+        return tags.slice(0, 10);
+    }
+
+    function buildFactWhitelist(formData) {
+        const facts = [];
+        const push = (label, value) => {
+            if (Array.isArray(value)) {
+                value.filter(Boolean).forEach((v, i) => facts.push(`${label}${i+1}：${v}`));
+            } else if (value !== undefined && value !== null && String(value).trim()) {
+                facts.push(`${label}：${String(value).trim()}`);
+            }
+        };
+        push("学生姓名", formData.studentName);
+        push("学生性别", formData.gender);
+        push("日期", formatDateForTitle(formData.date));
+        push("科目", formData.subject);
+        push("教学内容", formData.knowledge);
+        if (formData.correctness !== null) push("正确率", `约${formData.correctness}%`);
+        push("优点白名单", formData.selectedHighlights);
+        push("缺点白名单", formData.selectedWeak);
+        const realNoteItems = getRealNotesList(formData);
+        push("真实记录", realNoteItems.length ? realNoteItems : "无额外具体事件记录");
+        push("自动识别情景", inferSceneTags(formData).join("；") || "常规课后反馈");
+        push("下节课关注点", formData.nextFocus);
+        push("改进方向", formData.shouldGenerateSuggestion ? formData.selectedSuggestion : "不生成改进建议");
+        push("寄语", formData.selectedEncouragement);
+        push("作业", formData.homework);
+        return facts;
+    }
+
+    function buildFactPrompt(formData) {
+        const facts = buildFactWhitelist(formData).join("\n");
+        const praiseRule = (formData.correctness !== null && formData.correctness >= 90)
+            ? "【表扬允许】本次正确率≥90%，可以在反馈中适当使用“值得表扬”、“非常棒”、“继续加油”等正面肯定词，但仍禁止编造其他事实。"
+            : "【表扬禁止】本次正确率低于90%，绝对禁止出现“值得表扬”、“非常棒”等词。";
+        return `【事实白名单】\n${facts}\n\n${praiseRule}\n\n【绝对禁止】不得新增白名单外的具体错题次数、分数、迟到、作业未写等细节；不得编造任何不在白名单中的事件。`;
+    }
+
+    function buildInitialMessages(formData) {
+        const { studentName, date, subject, knowledge, homework, nextFocus, correctness, selectedHighlights, selectedWeak, selectedSuggestion, shouldGenerateSuggestion, realNotes, selectedEncouragement, grade, gender, enableGreeting } = formData;
+        const hasHomework = homework && homework.trim() !== "";
+        const hasNextFocus = nextFocus && nextFocus.trim() !== "";
+        const sceneTags = inferSceneTags(formData);
+        const sceneText = sceneTags.join("；") || "常规课后反馈";
+        const includeImprove = shouldGenerateSuggestion && (selectedWeak.length > 0 || selectedSuggestion);
+        const pronoun = gender === '男' ? '他' : '她';
+        const teacherRole = `${grade}${subject}资深老师`;
+        const gradeHint = grade === "初中" ? "语气可以适当鼓励，但不要反复使用‘不错’‘很好’这类单薄评价；指出问题时语气温和但具体。" : "语气更偏向高考/学业水平要求，可以适当强调逻辑严谨性和知识迁移能力。";
+        const correctnessText = correctness !== null ? `正确率约${correctness}%` : "未填写正确率";
+        const realNotesList = getRealNotesList(formData);
+        const realNotesText = formatRealNotesForPrompt(formData);
+        const praiseInstruction = (correctness !== null && correctness >= 90)
+            ? "本次正确率较高（≥90%），允许在反馈中自然使用“值得表扬”、“非常棒”等肯定词，但依然不能编造其他事实。"
+            : "本次正确率低于90%，绝对禁止使用“值得表扬”、“非常棒”等词，保持客观指出不足即可。";
+        const toneInstruction = getToneInstruction();
+        const expressionModeInstruction = getExpressionModeInstruction(formData);
+        const antiStiffInstruction = getAntiStiffInstruction();
+        const realTeacherCorpusInstruction = getRealTeacherCorpusInstruction(formData);
+        const sceneWritingHints = getSceneWritingHints(formData);
+        const expressionMode = getExpressionMode();
+        const teachingContentRange = expressionMode === "vivid" ? "45~75字" : "35~60字";
+        const teachingContentCount = expressionMode === "vivid" ? "2~3个" : "2个左右";
+        const [minWords, maxWords] = getWordCountRange();
+        const wordTarget = `正文总字数控制在${minWords}~${maxWords}字之间（只统计“教学内容、学生表现、改进建议”，不包含问候语、标题行和本周作业）。`;
+        const styleVariation = getStyleVariationInstruction(formData);
+        const historyPrompt = getHistoryPromptBlock(formData);
+        const toneExampleBlock = getToneExampleBlock(formData);
+
+        let systemPrompt = `你是一位${teacherRole}，正在给家长写课后反馈。你的风格需要高度模仿一位有多年教学经验、说话直接、不爱说套话的老师。
+
+【核心风格要求】语言直接、简洁；像老师口述记录；允许直接指出问题；使用“我”第一人称；不要标准化分段；收尾简洁；允许口语化短句。
+
+【表达模式】
+${expressionModeInstruction}
+
+${antiStiffInstruction}
+
+${realTeacherCorpusInstruction}
+
+${sceneWritingHints}
+
+${styleVariation}
+
+${historyPrompt}
+
+【自然表达要求】
+1. 禁止使用生硬句式：“倒是”“这点不错”“这点很好”“公式默写倒是全对”“整体来看”“总体而言”“存在一定问题”。
+2. 如果要表达“公式默写全对”，优先写成“公式默写这块没有问题，说明基础记忆是过关的”或“公式记忆这部分不用太担心”。
+3. 不要机械写成“优点+这点不错”。要写出优点背后的意义，或者直接接后续要求。
+4. 每次生成都要在不新增事实的前提下变换表达顺序和连接词，避免像复制粘贴。
+5. 不要把所有勾选项逐条罗列，优点最多展开2个，问题最多展开2个，其余可以合并概括。
+6. 学生表现段优先写成自然段，不要写成“第一、第二、第三”的清单。
+7. 同一件事只写一次，尤其是“下次课/后续会盯”“基础分/稳定性”“步骤规范/计算细节”“课后任务/不要松懈”，不要前后换个说法重复一遍。
+8. 语句要像老师顺手发微信：可以写“能听懂，但自己做还不稳”“这块先收一收”“先把会的题做对”“我暂时不太担心”“要引起重视”，少写“说明其具备较好基础”“反映出存在不足”这类评语腔。
+9. 宁可少写一点，也不要为了凑字反复解释同一个问题。每个事实说清楚即可，不要铺垫太多。
+10. 允许把老师的判断写出来，但必须有事实支撑；不要为了自然去编造“忘带笔记本、迟到、游戏、家长督促”等白名单外细节。
+
+【学科与年级适配】${gradeHint}
+
+【表扬条件】${praiseInstruction}
+
+【语气调节】${toneInstruction}
+
+【字数要求】${wordTarget}
+
+【事实铁律】反馈中出现的所有具体事实（如正确率、错题类型、行为表现、作业完成情况等）必须严格来自【事实白名单】。严禁编造任何不在白名单内的具体数字、题号、次数、迟到、未带资料等细节。如果白名单没有提供具体数据，只能使用概括性语言（如“这部分还需要巩固”“计算细节要注意”）。
+
+【课上真实记录使用规则】
+- 课上真实记录最多4条，每条都是独立事实，不默认存在因果关系。
+- 可以把不同真实记录分散融入学生表现段，不必连续写在同一句里。
+- 除非用户明确写了“因为/所以/导致/因此”，否则不要用“所以、导致、因此”把两条记录强行连成因果。
+- 例如“期中考完有点飘”和“方法会了但算不出来”应分别表达为状态需要收回来、方法落地和计算还不稳，而不是揉成一句模板话。
+- 真实记录不是寄语，也不是必须原样出现；保留事实意思即可，表达要自然。
+
+【自动识别情景】${sceneText}
+请根据这些情景组织“学生表现”段，不要机械罗列优点和缺点；情景只用于确定写作重点，不能当作额外事实去编造细节。
+
+【下节课关注点】${hasNextFocus ? nextFocus : "未填写"}
+若填写了下节课关注点，它只是“后续教学规划参考”，不是寄语，也不是固定尾句。
+写法要求：可以把它融入问题分析或后续训练安排里，用一句自然的话带过；不要求原文出现；不要连续写两句“下次课/后续/我会……”的同义提醒；如果正文里已经有近似表达，绝对不要再补原句。
+
+【固定结构】（正文目标${minWords}~${maxWords}字，不输出标题行！直接输出教学内容、学生表现等，不要输出“xxx课程反馈”作为独立一行。）
+教学内容：围绕核心知识点扩展${teachingContentCount}个紧密相关的子内容，${teachingContentRange}，不要写成教材目录。
+学生表现：占正文的主要部分，至少达到${Math.floor(minWords*0.52)}字以上；自然段表达，不要机械罗列优缺点。若有寄语，只保留核心意思自然改写，不要把寄语当固定尾巴硬贴。
+${includeImprove ? "改进建议：25~45字，只针对白名单中的薄弱点，别重复学生表现里已经说过的话。\n" : ""}${hasHomework ? "本周作业：必须作为最后一行单独输出，格式固定为“本周作业：用户填写的作业”，不改写、不扩写、不并入学生表现，且不计入正文字数。\n" : ""}
+
+【绝对禁止】
+1. 新增白名单外的具体错题次数、分数、迟到、作业未写等细节。
+2. 禁止套话如“家校配合”“持续赋能”。
+3. 禁止机械列优点/缺点清单。
+4. 禁止输出标题行（如“xx月xx日xx课程反馈”单独一行）。
+
+【人称代词】统一使用“${pronoun}”。
+
+【风格示例调用规则】当前选择什么语气，就只参考对应语气的示例，不要把三种语气混在一起平均化。
+${toneExampleBlock}
+
+【语气差异要求】
+- 鼓励模式：优先写进步、状态、主动性和可保持的地方，问题放在后半段，语气温和但不虚夸。
+- 平和模式：优点和问题都写，语气客观，像日常给家长同步情况。
+- 批评模式：优先写主要问题和后果，语气更直接，最后给具体要求。
+- 不管哪种语气，都必须严格基于事实白名单，不能为了语气效果新增事实。
+
+【写作核心】教学内容段落必须基于“${knowledge}”扩展出${teachingContentCount}个紧密相关的子知识点，控制在${teachingContentRange}；学生表现段要像真实老师微信反馈，不能僵硬。直接输出反馈正文，不要任何解释。`;
+
+        if (!enableGreeting) {
+            systemPrompt += `\n【特别注意】由于家长关闭了问候语，反馈正文的第一行必须是标题行，格式为“${studentName}${formatDateForTitle(date)}${subject}课后反馈”，独占一行，标题行不计入总字数。标题行之后换行再输出“教学内容：”等段落。`;
+        } else {
+            systemPrompt += `\n【格式】绝对禁止输出任何标题行（如“x月x日xx课程反馈”），直接输出“教学内容：”、“学生表现：”等段落。`;
+        }
+
+        const userPrompt = `${buildFactPrompt(formData)}
+【本次生成要求】
+不输出标题行，直接输出教学内容、学生表现等。
+学生：${studentName}（${gender}）
+年级：${grade} | 科目：${subject}
+教学内容核心：${knowledge} -> 扩展${teachingContentCount}个左右子知识，${teachingContentRange}，不要写成教材目录。
+表达模式：${expressionMode === "vivid" ? "生动：表达更顺一些，但不要作文腔" : "真实：朴素直接，像老师微信"}
+优点：${selectedHighlights.join("、") || "无明显突出优点"}
+薄弱点：${selectedWeak.join("、") || "无明确薄弱点"}
+真实记录（最多4条独立事实，不能强行合并成因果）：
+${realNotesText}
+自动识别情景：${sceneText}
+${sceneWritingHints}
+${hasNextFocus ? `下节课关注点：${nextFocus}（这是后续教学规划参考，不是寄语；可以改写，不要求原文出现；如果正文已有同义表达，不要再补原句）` : "下节课关注点：未填写，不要编造"}
+正确率：${correctnessText}
+${includeImprove ? `改进方向：${selectedSuggestion}` : "不生成改进建议"}
+${selectedEncouragement ? `寄语参考：${selectedEncouragement}（保留核心意思即可，可以自然改写；不要硬贴在学生表现段末尾；不要和前文同义重复）` : ""}
+${hasHomework ? `作业：${homework}（必须单独成最后一行，固定写成“本周作业：${homework}”，不要并入学生表现，也不要改写）` : "不生成作业段落"}
+${hasNextFocus ? "下节课关注点不要单独成段，不要当寄语，不要固定放在最后；如果已经自然写进计划，就不要再写第二遍。" : "不写下节课关注点"}
+当前语气模式：${getToneMode()}。只模仿当前语气对应的示例，不要把鼓励、平和、批评三种语气平均化。
+${getHistoryPromptBlock(formData)}
+学生表现至少${Math.floor(minWords*0.52)}字。
+不要写“公式默写倒是全对，这点不错/很好”“整体来看”“此外学生”“存在一定问题”“这一点先保持”等生硬句；如果出现公式默写全对，改写成“公式默写这块没有问题，说明基础记忆是过关的”。所有语气模式都要自然。
+输出完整反馈${!enableGreeting ? "（第一行必须是标题行）" : "（不要标题行）"}。`;
+
+        return [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+        ];
+    }
+
+    function formatEncouragementSentence(encouragement) {
+        const text = (encouragement || "").trim();
+        if (!text) return "";
+        return /[。！？.!?]$/.test(text) ? text : `${text}。`;
+    }
+
+    function polishEncouragementNaturally(feedback, formData) {
+        // 寄语现在只作为语气和收尾方向参考，不再强制原文出现，也不再固定追加到末尾。
+        // 这里仅做清理：如果模型把同一句寄语连续写了多遍，保留一遍；其余交给整体去重逻辑处理。
+        let text = normalizeFeedbackText(feedback || "");
+        const raw = (formData?.selectedEncouragement || "").trim();
+        if (!raw) return text;
+        const rawSentence = formatEncouragementSentence(raw);
+        if (!rawSentence) return text;
+        let seen = false;
+        const pattern = new RegExp(escapeRegExp(rawSentence) + "\\s*", "g");
+        text = text.replace(pattern, (match) => {
+            if (seen) return "";
+            seen = true;
+            return match;
+        });
+        return normalizeFeedbackText(text);
+    }
+
+    function polishRealNotesFusion(feedback, formData) {
+        // 真实记录拆成多条后，避免模型又把两条独立事实揉成一句因果或一句过长的合并判断。
+        let text = normalizeFeedbackText(feedback || "");
+        const notes = getRealNotesList(formData);
+        if (notes.length < 2) return text;
+        const allNotes = notes.join("；");
+        const pronoun = formData?.gender === "女" ? "她" : "他";
+
+        // 常见场景：考试后状态有点飘 + 方法会但自己算不出来。这是两个独立事实，拆成状态和落地两个判断。
+        if (/(期中|期末|考试|考完|考得)/.test(allNotes) && /(飘|松|松懈|放松)/.test(allNotes) && /(方法|思路)/.test(allNotes) && /(算|计算|做不出来|做不对|出错)/.test(allNotes)) {
+            const splitSentence = `不过考完之后状态上有点飘，这一点需要先收回来。方法层面${pronoun}不是完全不会，但一到自己算就容易出错，还要把思路真正落到步骤和计算上。`;
+            text = text.replace(/不过?[^。！？!?]{0,24}(期中|期末|考试|考完|考得)[^。！？!?]{0,24}(飘|松懈|放松)[^。！？!?]{0,35}(方法|思路)[^。！？!?]{0,35}(算|计算|做不出来|做不对|出错)[^。！？!?]*[。！？!?]/g, splitSentence);
+            text = text.replace(/(期中|期末|考试|考完|考得)[^。！？!?]{0,24}(飘|松懈|放松)[^。！？!?]{0,35}(方法|思路)[^。！？!?]{0,35}(算|计算|做不出来|做不对|出错)[^。！？!?]*[。！？!?]/g, splitSentence);
+        }
+
+        return normalizeFeedbackText(text);
+    }
+
+    function cleanNextFocusCore(nextFocus) {
+        return (nextFocus || "")
+            .trim()
+            .replace(/^[。！？!?,，\s]+|[。！？!?,，\s]+$/g, "")
+            .replace(/^(下次课|下节课|下一次课|后续|接下来|之后|后面)(我会|会|继续|重点)?/g, "")
+            .replace(/^(重点看一下|重点看|看一下|看一看|关注一下|关注|重点抓|重点处理|重点巩固|继续盯一下|继续盯|盯一下|盯)/g, "")
+            .replace(/^(学生|孩子|同学|他|她)/g, "")
+            .replace(/^[，,：:；;\s]+/g, "")
+            .trim();
+    }
+
+    function formatNextFocusSentence(nextFocus, formData) {
+        const raw = (nextFocus || "").trim();
+        if (!raw) return "";
+        const pronoun = formData?.gender === "女" ? "她" : "他";
+        const core = cleanNextFocusCore(raw);
+        if (!core) return "";
+
+        if (/独立|独自|自己/.test(core) && /完整|一道|题/.test(core)) {
+            return `后面课上会把这类题放到独立练习里，看${pronoun}能不能不靠提示把完整步骤写下来。`;
+        }
+        if (/作业|任务|完成/.test(core)) {
+            return `下次会先看课后任务落实情况，再根据完成质量决定哪些地方要补。`;
+        }
+        if (/计算|步骤|规范|书写|化简|符号/.test(core)) {
+            return `后面课上会把计算和书写规范一起盯，避免会思路但过程丢分。`;
+        }
+        if (/审题|读题|信息提取/.test(core)) {
+            return `后面练题时会继续看审题和信息提取，先把题意读准再动笔。`;
+        }
+        if (/错题|复盘|整理/.test(core)) {
+            return `下次会结合错题复盘情况，看这些方法有没有真正整理成自己的东西。`;
+        }
+        return `后面课上会围绕“${core}”继续检查，但会放进具体题目里看，不单独停留在口头要求上。`;
+    }
+
+    function normalizeFocusForCompare(text) {
+        return (text || "")
+            .replace(/[\s，。！？、；：,.!?;:]/g, "")
+            .replace(/下(?:次|节|一次)课/g, "")
+            .replace(/重点看一下|重点看|看一下|看一看|关注一下|关注|重点抓|重点处理|重点巩固/g, "")
+            .replace(/后续|接下来|这块|这方面|方面|问题|目前|现在|之后|后面/g, "")
+            .replace(/我会继续|会继续|我会|会|继续盯|继续|盯一下|盯|跟进一下|再看/g, "")
+            .replace(/学生|孩子|同学|他|她/g, "")
+            .replace(/能不能够|能不能|能否独立|能否|是否|可不可以/g, "")
+            .replace(/不依赖老师提示|不依赖提示|不靠老师提示|不靠提示|不用提示|不需要提示/g, "")
+            .replace(/自己|独立|独自/g, "")
+            .replace(/完整的|完整地|完整/g, "")
+            .replace(/一(?:道|个)?(?:的)?题目?/g, "题")
+            .replace(/题型/g, "题")
+            .replace(/[的了着把得地]/g, "")
+            .trim();
+    }
+
+    function splitFeedbackSentences(text) {
+        return (text || "")
+            .replace(/\n/g, "。")
+            .split(/[。！？!?；;]/)
+            .map(s => s.trim())
+            .filter(Boolean);
+    }
+
+    function charCoverage(a, b) {
+        const A = new Set((a || "").split(""));
+        const B = new Set((b || "").split(""));
+        if (A.size === 0 || B.size === 0) return 0;
+        let inter = 0;
+        A.forEach(ch => { if (B.has(ch)) inter++; });
+        return inter / Math.min(A.size, B.size);
+    }
+
+    function splitSentencesWithPunctuation(text) {
+        const parts = [];
+        const re = /[^。！？!?；;]+[。！？!?；;]?/g;
+        let match;
+        while ((match = re.exec(text || "")) !== null) {
+            const chunk = match[0].trim();
+            if (chunk) parts.push(chunk);
+        }
+        return parts;
+    }
+
+    function getPerformanceBounds(text) {
+        const start = (text || "").indexOf("学生表现：");
+        if (start < 0) return null;
+        const contentStart = start + "学生表现：".length;
+        const markers = ["\n改进建议：", "\n本周作业：", "\n作业："];
+        let end = text.length;
+        for (const marker of markers) {
+            const idx = text.indexOf(marker, contentStart);
+            if (idx >= 0 && idx < end) end = idx;
+        }
+        return { start: contentStart, end };
+    }
+
+    function isAdviceSentence(sentence) {
+        return /(后面|后续|接下来|下次课|下节课|下一次课|目前先|先把|课后|作业|任务|不要松懈|不能放松|会继续|我会|重点抓|重点看|放到|放进|检查|继续看)/.test(sentence || "");
+    }
+
+    function normalizeAdviceForCompare(sentence) {
+        return normalizeFocusForCompare(sentence)
+            .replace(/老师布置的/g, "")
+            .replace(/认真|按要求|要求|必须|一定|要|还要|需要|不能|不要|不再|再/g, "")
+            .replace(/先把|先|主要|重点|当前|现在/g, "")
+            .replace(/这类|这部分|这块|这方面|一点|一下/g, "")
+            .replace(/方法|过程|情况|地方/g, "")
+            .trim();
+    }
+
+    function isDuplicateAdviceSentence(a, b) {
+        const A = (a || "").trim();
+        const B = (b || "").trim();
+        if (!A || !B) return false;
+        if (A === B) return true;
+        const aIsAdvice = isAdviceSentence(A) || isNextFocusSentence(A);
+        const bIsAdvice = isAdviceSentence(B) || isNextFocusSentence(B);
+        if (!aIsAdvice || !bIsAdvice) return false;
+
+        const focusA = normalizeFocusForCompare(A);
+        const focusB = normalizeFocusForCompare(B);
+        if (focusA.length >= 3 && focusB.length >= 3) {
+            if (focusA.includes(focusB) || focusB.includes(focusA)) return true;
+            if (charCoverage(focusA, focusB) >= 0.78 && sentenceSimilarity(focusA, focusB) >= 0.18) return true;
+            if (sentenceSimilarity(focusA, focusB) >= 0.38) return true;
+        }
+
+        const coreA = normalizeAdviceForCompare(A);
+        const coreB = normalizeAdviceForCompare(B);
+        if (coreA.length >= 3 && coreB.length >= 3) {
+            if (coreA.includes(coreB) || coreB.includes(coreA)) return true;
+            if (charCoverage(coreA, coreB) >= 0.8 && sentenceSimilarity(coreA, coreB) >= 0.18) return true;
+            if (sentenceSimilarity(coreA, coreB) >= 0.42) return true;
+        }
+        return false;
+    }
+
+    function dedupeStudentPerformanceAdvice(feedback, formData) {
+        let text = normalizeFeedbackText(feedback || "");
+        const bounds = getPerformanceBounds(text);
+        if (!bounds) return dedupeNextFocusSentences(text);
+        const before = text.slice(0, bounds.start);
+        const performance = text.slice(bounds.start, bounds.end);
+        const after = text.slice(bounds.end);
+        const sentences = splitSentencesWithPunctuation(performance);
+        if (sentences.length <= 1) return dedupeNextFocusSentences(text);
+
+        const kept = [];
+        for (const sentence of sentences) {
+            const trimmed = sentence.trim();
+            if (!trimmed) continue;
+            const duplicated = kept.some(prev => isDuplicateAdviceSentence(prev, trimmed));
+            if (!duplicated) kept.push(trimmed);
+        }
+
+        return dedupeNextFocusSentences(normalizeFeedbackText(`${before}${kept.join("")}${after}`));
+    }
+
+    function isNextFocusSentence(sentence) {
+        return /(下次课|下节课|下一次课|后续|接下来|我会继续|我会盯|继续盯|课上会继续|后面重点|后面会|后面还要|目前先把|先把|放到独立练习|放进具体题目|不靠提示|不依赖提示)/.test(sentence || "");
+    }
+
+    function hasNextFocusAlready(feedback, rawFocus) {
+        const raw = (rawFocus || "").trim();
+        if (!raw) return true;
+        const text = normalizeFeedbackText(feedback || "");
+        if (text.includes(raw)) return true;
+        const rawCore = normalizeFocusForCompare(raw);
+        if (!rawCore || rawCore.length < 3) return false;
+        return splitFeedbackSentences(text).some(sentence => {
+            const sentenceCore = normalizeFocusForCompare(sentence);
+            if (!sentenceCore || sentenceCore.length < 3) return false;
+            if (sentenceCore.includes(rawCore) || rawCore.includes(sentenceCore)) return true;
+            if ((isNextFocusSentence(sentence) || isAdviceSentence(sentence)) && charCoverage(rawCore, sentenceCore) >= 0.72) return true;
+            return (isNextFocusSentence(sentence) || isAdviceSentence(sentence)) && sentenceSimilarity(rawCore, sentenceCore) >= 0.26;
+        });
+    }
+
+    function dedupeNextFocusSentences(feedback) {
+        let text = normalizeFeedbackText(feedback || "");
+        // 处理“下次课/后续/我会……”同义连写，保留更自然的第一句。
+        for (let i = 0; i < 4; i++) {
+            text = text.replace(/((?:下(?:次|节|一次)课|后续|接下来|后面|我会|课上会继续)[^。！？!?]{4,100}[。！？!?])\s*((?:下(?:次|节|一次)课|后续|接下来|后面|我会|课上会继续)[^。！？!?]{4,100}[。！？!?])/g, (match, first, second) => {
+                if (isDuplicateAdviceSentence(first, second)) return first;
+                return match;
+            });
+        }
+        return normalizeFeedbackText(text);
+    }
+
+    function insertSentenceIntoPerformance(text, sentence) {
+        const bounds = getPerformanceBounds(text);
+        if (!bounds) return normalizeFeedbackText(`${text}\n学生表现：${sentence}`);
+        const before = text.slice(0, bounds.start);
+        const performance = text.slice(bounds.start, bounds.end);
+        const after = text.slice(bounds.end);
+        const sentences = splitSentencesWithPunctuation(performance);
+        if (sentences.length === 0) return normalizeFeedbackText(`${before}${sentence}${after}`);
+
+        let insertIndex = Math.max(1, Math.floor(sentences.length * 0.65));
+        const problemIndex = sentences.findIndex(s => /(问题|不稳|出错|薄弱|规范|计算|审题|正确率|步骤|卡|丢分|提醒|不够|低级错误)/.test(s));
+        if (problemIndex >= 0) insertIndex = Math.min(problemIndex + 1, sentences.length);
+        if (sentences.length >= 2) insertIndex = Math.min(insertIndex, sentences.length - 1); // 不固定放在最后
+
+        sentences.splice(insertIndex, 0, sentence);
+        return normalizeFeedbackText(`${before}${sentences.join("")}${after}`);
+    }
+
+    function ensureNextFocusNaturally(feedback, formData) {
+        let text = dedupeStudentPerformanceAdvice(feedback || "", formData);
+        const raw = (formData.nextFocus || "").trim();
+        if (!raw) return text;
+        // 下节课关注点是规划参考：正文已有同义计划就不补；需要补时插入段中，不贴尾巴。
+        if (hasNextFocusAlready(text, raw)) return dedupeStudentPerformanceAdvice(text, formData);
+        const sentence = formatNextFocusSentence(raw, formData);
+        if (!sentence) return text;
+        text = insertSentenceIntoPerformance(text, sentence);
+        return dedupeStudentPerformanceAdvice(text, formData);
+    }
+
+    function escapeRegExp(str) { return String(str || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+    async function callDeepSeek(apiKey, messages, temperature) {
+        const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model: DEEPSEEK_MODEL,
+                messages,
+                temperature,
+                max_tokens: 2000
+            })
+        });
+        if (!response.ok) throw new Error(`API错误(${response.status})`);
+        const result = await response.json();
+        return normalizeFeedbackText(result.choices?.[0]?.message?.content || "");
+    }
+
+    function normalizeFeedbackText(text) {
+        return (text || "")
+            .replace(/\r\n/g, "\n")
+            .replace(/^```[a-zA-Z]*\s*/g, "")
+            .replace(/```$/g, "")
+            .replace(/\n\s*\n+/g, "\n")
+            .replace(/[ \t]+$/gm, "")
+            .trim();
+    }
+
+    function normalizeHomeworkText(homework) {
+        return String(homework || "").replace(/\s+/g, " ").trim();
+    }
+
+    function ensureHomeworkLine(feedback, formData) {
+        let text = normalizeFeedbackText(feedback || "");
+        const homework = normalizeHomeworkText(formData?.homework || "");
+
+        // 先把模型可能粘在上一句后面的“作业/本周作业”标记拆成新行，方便统一处理。
+        text = text.replace(/\s*(本周作业|作业)[:：]/g, "\n本周作业：");
+
+        if (!homework) {
+            return normalizeFeedbackText(
+                text.split("\n")
+                    .filter(line => !/^\s*(本周作业|作业)[:：]/.test(line))
+                    .join("\n")
+            );
+        }
+
+        const lines = text.split("\n")
+            .map(line => line.trim())
+            .filter(Boolean)
+            .filter(line => !/^\s*(本周作业|作业)[:：]/.test(line));
+
+        lines.push(`本周作业：${homework}`);
+        return normalizeFeedbackText(lines.join("\n"));
+    }
+
+
+    function postProcessFeedback(feedback, formData, options = {}) {
+        // 统一处理模型输出后的格式、口吻、真实记录融合、下节课关注点、寄语去重和作业行。
+        // 以前这些 polish 函数在生成流程里手动重复调用，后续维护容易漏改或顺序混乱。
+        const rounds = Number.isInteger(options.rounds) ? options.rounds : 2;
+        const steps = [
+            polishAwkwardPhrases,
+            polishRealNotesFusion,
+            ensureNextFocusNaturally,
+            polishEncouragementNaturally,
+            dedupeStudentPerformanceAdvice
+        ];
+
+        let text = normalizeFeedbackText(feedback || "");
+        for (let i = 0; i < Math.max(1, rounds); i++) {
+            for (const step of steps) {
+                text = step(text, formData);
+            }
+        }
+
+        // 作业行最后处理，避免前面的 polish 把“本周作业”并回学生表现段。
+        text = ensureHomeworkLine(text, formData);
+        return normalizeFeedbackText(text);
+    }
+
+    function getCountableFeedbackText(feedback, formData) {
+        const homework = normalizeHomeworkText(formData?.homework || "");
+        const titleLine = `${formData?.studentName || ""}${formatDateForTitle(formData?.date)}${formData?.subject || ""}课后反馈`;
+        return normalizeFeedbackText(feedback || "")
+            .split("\n")
+            .map(line => line.trim())
+            .filter(Boolean)
+            .filter(line => line !== titleLine)
+            .filter(line => !/^.+好，这是.+课程反馈$/.test(line))
+            .filter(line => !/^\s*(本周作业|作业)[:：]/.test(line))
+            .join("\n");
+    }
+
+    function polishAwkwardPhrases(feedback, formData) {
+        let text = normalizeFeedbackText(feedback || "");
+        const replacements = [
+            [/公式默写倒是全对[，,。\s]*(这点)?(不错|很好|值得肯定)?[。.]?/g, "公式默写这块没有问题，说明基础记忆是过关的。"],
+            [/公式默写(是)?全对[，,。\s]*(这点)?(不错|很好|值得肯定)[。.]?/g, "公式默写这块没有问题，说明基础记忆是过关的。"],
+            [/公式默写(是)?全对[，,。\s]*/g, "公式默写这块没有问题，"],
+            [/这一点先保持/g, "继续保持"],
+            [/这一点可以保持/g, "继续保持"],
+            [/这点不错/g, "继续保持"],
+            [/这点很好/g, "这部分不用太担心"],
+            [/这点值得肯定/g, "继续保持"],
+            [/倒是/g, ""],
+            [/整体表现不错，继续加油/g, "整体状态还可以，后面继续保持"],
+            [/学生整体表现不错，继续加油/g, "学生整体状态还可以，后面继续保持"],
+            [/表现良好，继续保持/g, "这节课状态是可以的，后面保持住"],
+            [/这点是值得表扬的/g, "继续保持"],
+            [/这点是值得肯定的/g, "继续保持"],
+            [/整体来看，?/g, ""],
+            [/总体而言，?/g, ""],
+            [/此外，学生/g, "另外，学生"],
+            [/此外，/g, "另外，"],
+            [/与此同时，/g, "另外，"],
+            [/后续还需要继续/g, "后面还要"],
+            [/后续还需要/g, "后面还要"],
+            [/目前主要问题在于/g, "现在主要问题是"],
+            [/这部分内容/g, "这块内容"],
+            [/知识点层面/g, "知识点上"],
+            [/存在一定问题/g, "还不够稳"],
+            [/有待提高/g, "还要再练"],
+            [/掌握得还可以/g, "掌握情况还行"],
+            [/学习态度端正/g, "态度是可以的"],
+            [/课上表现良好/g, "这节课状态还可以"],
+            [/能够较好地/g, "基本能"],
+            [/较为/g, "比较"],
+            [/该生/g, "学生"],
+            [/需要进一步加强/g, "还要再加强"],
+            [/需要继续巩固/g, "还要再巩固"],
+            [/本次课/g, "这节课"],
+            [/方法都会，但一算就错/g, "方法能听懂，但自己落笔时计算和步骤还不稳"],
+            [/方法会了但算不出来/g, "方法能听懂，但自己做题时还落不下来"],
+            [/明显有点飘/g, "状态有点飘"],
+            [/说明其/g, "说明"],
+            [/反映出/g, "能看出"],
+            [/具备较好/g, "有一定"],
+            [/需进一步/g, "还要"],
+            [/不依赖提示/g, "不靠提示"],
+            [/独自做对一道完整的题/g, "自己把一道完整题做对"],
+            [/独自做对一道题/g, "自己把题做对"],
+            [/体现了?学生/g, "能看出学生"],
+            [/反映出学生/g, "能看出学生"],
+            [/反映出/g, "能看出"],
+            [/说明其具备/g, "说明有"],
+            [/具备较强/g, "有一定"],
+            [/学习能力有所提升/g, "状态比之前好一些"],
+            [/自主学习意识不足/g, "课后下的功夫还不够"],
+            [/知识掌握存在漏洞/g, "有些知识点还没补牢"],
+            [/需要进一步提升/g, "还要再练"],
+            [/仍需进一步巩固/g, "还要再巩固"],
+            [/建议后续/g, "后面"],
+            [/后续建议/g, "后面"],
+            [/表现较为/g, "表现比较"],
+            [/完成情况较为/g, "完成情况比较"]
+        ];
+        replacements.forEach(([pattern, replacement]) => { text = text.replace(pattern, replacement); });
+        text = text
+            .replace(/，。/g, "。")
+            .replace(/。。+/g, "。")
+            .replace(/，\s*，/g, "，")
+            .replace(/学生表现：\s*。/g, "学生表现：")
+            .replace(/教学内容：\s*另外，/g, "教学内容：")
+            .replace(/学生表现：\s*另外，/g, "学生表现：")
+            .replace(/改进建议：\s*另外，/g, "改进建议：")
+            .replace(/([。！？])另外，另外，/g, "$1另外，");
+        return normalizeFeedbackText(text);
+    }
+
+    function hasStiffExpression(feedback) {
+        const stiffPatterns = [
+            /倒是/, /这点不错/, /这点很好/, /公式默写倒是全对/,
+            /整体来看/, /总体而言/, /存在一定问题/, /有待提高/,
+            /能够较好地/, /该生/, /综上/, /家校配合/, /持续赋能/,
+            /反映出/, /体现了/, /具备较强/, /仍需进一步/, /自主学习意识不足/, /知识掌握存在漏洞/,
+            /此外，?学生.{0,18}此外/, /学生表现：学生/
+        ];
+        return stiffPatterns.some(pattern => pattern.test(feedback || ""));
+    }
+
+    function getTextLength(text) { return (text || "").replace(/\s+/g, "").length; }
+
+    function hasWrongPronoun(feedback, gender) {
+        const text = feedback || "";
+        if (gender === "男") {
+            // 只检查独立使用的“她”，避免误伤“她们”等非当前学生指代。
+            return /(^|[，。！？、；：\s])她(?![们人])/.test(text);
+        }
+        if (gender === "女") {
+            // 只检查独立使用的“他”，避免把“其他、他们、他人”误判为人称错误。
+            return /(^|[，。！？、；：\s])他(?![们人])/.test(text);
+        }
+        return false;
+    }
+
+    function isLengthWarning(issue) {
+        return /^总字数偏少/.test(issue || "") || /^总字数偏多/.test(issue || "") || /^学生表现不足/.test(issue || "");
+    }
+
+    function getReportWarnings(report, options = {}) {
+        const warnings = Array.isArray(report?.warnings) ? report.warnings : [];
+        if (options.ignoreLengthWarnings) return warnings.filter(item => !isLengthWarning(item));
+        return warnings;
+    }
+
+    function getReportReviewItems(report, options = {}) {
+        const issues = Array.isArray(report?.issues) ? report.issues : [];
+        const warnings = getReportWarnings(report, options);
+        return [...issues, ...warnings];
+    }
+
+    function validateFeedback(feedback, formData) {
+        // 正文字数不统计问候语、标题行和本周作业。
+        const totalLen = getTextLength(getCountableFeedbackText(feedback, formData));
+        const performanceStart = feedback.indexOf("学生表现：");
+        let performanceText = "";
+        if (performanceStart >= 0) {
+            const rest = feedback.slice(performanceStart + "学生表现：".length);
+            const endMarkers = ["\n改进建议：", "\n本周作业：", "\n作业："];
+            let end = rest.length;
+            endMarkers.forEach(m => { const idx = rest.indexOf(m); if (idx >= 0 && idx < end) end = idx; });
+            performanceText = rest.slice(0, end).trim();
+        }
+        const performanceLen = getTextLength(performanceText);
+        const [minWords, maxWords] = getWordCountRange();
+        const issues = [];
+        const warnings = [];
+        if (!feedback.includes("教学内容：")) issues.push("缺少教学内容段落");
+        if (!feedback.includes("学生表现：")) issues.push("缺少学生表现段落");
+        if (performanceLen < minWords * 0.52) warnings.push(`学生表现不足${Math.floor(minWords*0.52)}字（当前${performanceLen}字，可点“长一点”补充）`);
+        if (totalLen < minWords) warnings.push(`总字数偏少（当前${totalLen}字，目标${minWords}~${maxWords}，可点“长一点”）`);
+        if (totalLen > maxWords + 10) warnings.push(`总字数偏多（当前${totalLen}字，目标最多${maxWords}字左右，可点“短一点”）`);
+        if (!formData.shouldGenerateSuggestion && feedback.includes("改进建议：")) issues.push("不应生成改进建议段落");
+        const homework = normalizeHomeworkText(formData.homework || "");
+        if (homework) {
+            const lines = normalizeFeedbackText(feedback).split("\n").map(line => line.trim()).filter(Boolean);
+            const expectedHomeworkLine = `本周作业：${homework}`;
+            if (!lines.includes(expectedHomeworkLine)) issues.push("作业必须单独成行，且格式为“本周作业：...”");
+            else if (lines[lines.length - 1] !== expectedHomeworkLine) issues.push("作业必须放在最后一行");
+        } else if (/\n\s*(本周作业|作业)[:：]/.test(feedback)) {
+            issues.push("未填写作业时不应生成作业段落");
+        }
+        if (/\n(下节课关注点|下次课关注点|下一次课关注点)：/.test(feedback)) issues.push("下节课关注点不能单独成段");
+        if (formData.correctness !== null && formData.correctness < 90 && /值得表扬|非常棒|做得很好/.test(feedback)) {
+            issues.push("正确率低于90%，禁止使用过度表扬词");
+        }
+        if (hasStiffExpression(feedback)) {
+            issues.push("存在模板化或生硬表达，需要改成更自然的老师口吻");
+        }
+        if (hasWrongPronoun(feedback, formData.gender)) {
+            warnings.push("疑似人称代词错误，请检查他/她是否和性别一致");
+        }
+        const tone = getToneMode();
+        if (tone === "critical" && /非常棒|值得表扬|完成得很好/.test(feedback)) {
+            issues.push("批评模式下不应出现过强表扬词");
+        }
+        if (tone === "encourage" && /必须改正|严重|太差|不够重视/.test(feedback)) {
+            issues.push("鼓励模式下语气过重");
+        }
+        return { ok: issues.length === 0, issues, warnings, totalLen, performanceLen };
+    }
+
+    async function generateFeedbackWithDeepSeek(formData, apiKey) {
+        let messages = buildInitialMessages(formData);
+        let lastFeedback = "";
+        let lastReport = null;
+        const [firstTemp, retryTemp] = getTemperatureByMode();
+        for (let attempt = 0; attempt < 3; attempt++) {
+            const temp = attempt === 0 ? firstTemp : retryTemp;
+            lastFeedback = await callDeepSeek(apiKey, messages, temp);
+            lastFeedback = postProcessFeedback(lastFeedback, formData);
+            // 如果关闭了问候语，确保第一行是标题行
+            if (!formData.enableGreeting) {
+                const titlePattern = new RegExp(`^${escapeRegExp(formData.studentName)}${escapeRegExp(formatDateForTitle(formData.date))}${escapeRegExp(formData.subject)}课后反馈`);
+                if (!titlePattern.test(lastFeedback)) {
+                    lastFeedback = `${formData.studentName}${formatDateForTitle(formData.date)}${formData.subject}课后反馈\n${lastFeedback}`;
+                }
+            } else {
+                // 启用问候语时，移除可能残留的标题行
+                const titlePattern = new RegExp(`^${escapeRegExp(formData.studentName)}${escapeRegExp(formatDateForTitle(formData.date))}${escapeRegExp(formData.subject)}课后反馈\\s*\\n?`, 'g');
+                lastFeedback = lastFeedback.replace(titlePattern, '');
+            }
+            lastReport = validateFeedback(lastFeedback, formData);
+            const historyReport = getHistoricalRepeatReport(lastFeedback, formData);
+            if (historyReport.severe && attempt === 0) {
+                lastReport.ok = false;
+                lastReport.issues.push(`历史重复度偏高：${historyReport.message}`);
+            }
+            if (lastReport.ok) return lastFeedback;
+            const onlyHistoryIssue = lastReport.issues.length > 0 && lastReport.issues.every(issue => issue.includes("历史重复"));
+            if (attempt === 1 && onlyHistoryIssue) return lastFeedback;
+            const [minW, maxW] = getWordCountRange();
+            messages = [
+                ...buildInitialMessages(formData),
+                { role: "assistant", content: lastFeedback },
+                { role: "user", content: `上一版未通过校验：${lastReport.issues.join("；")}。请重新生成，必须满足：${!formData.enableGreeting ? "第一行必须是标题行'" + formData.studentName + formatDateForTitle(formData.date) + formData.subject + "课后反馈'；" : "不要输出任何标题行；"}正文总字数${minW}~${maxW}字（不含问候语、标题行和本周作业）；学生表现至少${Math.floor(minW*0.52)}字；严格基于白名单；保证性别代词正确；${formData.correctness !== null && formData.correctness < 90 ? "绝对不要出现“值得表扬”“非常棒”。" : "正确率≥90%，可以使用“值得表扬”但不要编造其他事实。"}${formData.nextFocus ? "下节课关注点作为规划参考自然融入，不要硬贴原句或放在段尾；" : ""}真实记录如果有多条，必须当成独立事实分散融入，不能强行合并成一句因果；历史重复提醒：如果上一版与历史反馈重复，请保留事实但更换句式、顺序和连接词，避开高频表达。直接输出反馈，避免“倒是”“这点不错”“这点很好”“这一点先保持”“整体来看”“存在一定问题”“反映出”“体现了”“具备较好”等生硬表达；按真实老师文风写，先说课堂事实和判断，再说具体要求，不要像AI模板；如果有作业，必须把“本周作业：”单独放在最后一行，作业不参与正文扩写。` }
+            ];
+        }
+        throw new Error(`生成内容未通过校验：${lastReport?.issues?.join("；") || "内容不符合要求"}，请稍后重试或调整输入信息。`);
+    }
+
+    function getCurrentFeedbackText() {
+        const resultDiv = document.getElementById("feedbackContent");
+        return normalizeFeedbackText(resultDiv ? resultDiv.innerText : "");
+    }
+
+    function isValidFeedbackForRevision(text) {
+        if (!text) return false;
+        if (/点击上方按钮生成反馈|正在调用AI生成反馈|生成失败/.test(text)) return false;
+        return text.length >= 20;
+    }
+
+    function hasSection(text, sectionName) {
+        const normalized = normalizeFeedbackText(text || "");
+        const escapedName = escapeRegExp(sectionName);
+        const pattern = new RegExp(`(^|\n)${escapedName}[:：]`);
+        return pattern.test(normalized);
+    }
+
+    function getExistingSectionsFromText(text) {
+        const sectionNames = ["教学内容", "学生表现", "改进建议", "本周作业"];
+        return sectionNames.filter(name => hasSection(text, name));
+    }
+
+    function buildExistingSectionRule(currentText) {
+        const existingSections = getExistingSectionsFromText(currentText);
+        if (!existingSections.length) {
+            return "不要新增任何段落标签，也不要把内容拆成新的固定栏目。";
+        }
+        const sectionText = existingSections.map(name => `“${name}：”`).join("、");
+        return `只保留原文已有标签：${sectionText}。原文没有的标签绝对不要新增，尤其是原文没有“改进建议：”时，不要为了让语气更严厉而补出改进建议段。`;
+    }
+
+    function removeUnexpectedSuggestionSection(text, originalText) {
+        let result = normalizeFeedbackText(text || "");
+        const originalHasSuggestion = hasSection(originalText, "改进建议");
+        if (originalHasSuggestion) return result;
+
+        // 二次修改以“当前反馈结构”为准：第一版没有“改进建议”，改写后也不能新增。
+        // 兼容模型把“改进建议”放在文末、放在作业前，或使用英文冒号的情况。
+        result = result
+            .replace(/\n?改进建议[:：][\s\S]*?(?=\n(?:本周作业|作业)[:：]|$)/g, "")
+            .replace(/\n\s*\n+/g, "\n")
+            .trim();
+        return normalizeFeedbackText(result);
+    }
+
+    function preserveOriginalRevisionSections(text, originalText) {
+        // 目前最容易被模型擅自新增的是“改进建议”。后续如果发现其他栏目也会被新增，
+        // 可以在这里继续扩展，而不用再改二次修改主流程。
+        return removeUnexpectedSuggestionSection(text, originalText);
+    }
+
+   const WECHAT_EMOJI_TOKENS = [
+    "[强]", "[偷笑]", "[愉快]", "[加油]", "[玫瑰]",
+    "[叹气]", "[擦汗]", "[尴尬]", "[呲牙]", "[庆祝]",
+    "[好的]", "[耶]", "[敲打]", "[拥抱]", "[囧]",
+    "[失望]", "[裂开]", "[难过]"
+    ];
+
+    const WECHAT_EMOJI_REGEX = /\[(强|偷笑|愉快|加油|玫瑰|叹气|擦汗|尴尬|呲牙|庆祝|好的|耶|敲打|拥抱|囧|失望|裂开|难过)\]/g;
+    function countWechatEmojis(text) {
+        return (String(text || "").match(WECHAT_EMOJI_REGEX) || []).length;
+    }
+
+    function limitWechatEmojis(text, maxCount = 5) {
+        let count = 0;
+        return normalizeFeedbackText(String(text || "").replace(WECHAT_EMOJI_REGEX, (token) => {
+            count += 1;
+            return count <= maxCount ? token : "";
+        }));
+    }
+
+    function isGreetingOrTitleLine(line, index, formData) {
+        if (index !== 0) return false;
+        const cleanLine = String(line || "").trim();
+        const title = `${formData.studentName}${formatDateForTitle(formData.date)}${formData.subject}课后反馈`;
+        const greetingPattern = new RegExp(`^${escapeRegExp(formData.studentName)}(爸爸|妈妈|家长)(上午|下午|晚上)好，这是${escapeRegExp(formData.studentName)}${escapeRegExp(formatDateForTitle(formData.date))}${escapeRegExp(formData.subject)}课程反馈$`);
+        return cleanLine === title || greetingPattern.test(cleanLine);
+    }
+
+    function isGoodEmojiTargetLine(line, index, formData) {
+        const cleanLine = String(line || "").trim();
+        if (!cleanLine || cleanLine.length < 8) return false;
+        if (isGreetingOrTitleLine(cleanLine, index, formData)) return false;
+        if (/^本周作业[:：]/.test(cleanLine)) return false;
+        return true;
+    }
+
+    function appendWechatEmojiToLine(line, token) {
+        const raw = String(line || "");
+        if (!raw.trim()) return raw;
+        if (/[。！？!?]$/.test(raw)) return raw.replace(/([。！？!?])$/, `${token}$1`);
+        return `${raw}${token}`;
+    }
+
+    function pickFallbackWechatEmojiTokens(formData, currentText) {
+        const used = new Set(String(currentText || "").match(WECHAT_EMOJI_REGEX) || []);
+        const weakCount = Array.isArray(formData?.selectedWeak) ? formData.selectedWeak.length : 0;
+        const highlightCount = Array.isArray(formData?.selectedHighlights) ? formData.selectedHighlights.length : 0;
+        const correctness = formData?.correctness;
+        const preferred = [];
+        const add = (token) => { if (!preferred.includes(token)) preferred.push(token); };
+
+        if (correctness !== null && correctness !== undefined && Number(correctness) >= 90) add("[强]");
+        if (highlightCount > 0) add("[愉快]");
+        if (weakCount > 0 || (correctness !== null && correctness !== undefined && Number(correctness) < 85)) add("[加油]");
+        if (weakCount >= 2 || (correctness !== null && correctness !== undefined && Number(correctness) < 75)) add("[擦汗]");
+        if (highlightCount >= weakCount && highlightCount > 0) add("[庆祝]");
+        add("[加油]");
+        add("[玫瑰]");
+        add("[强]");
+        add("[愉快]");
+
+        return preferred.filter(token => !used.has(token)).concat(WECHAT_EMOJI_TOKENS.filter(token => !used.has(token) && !preferred.includes(token)));
+    }
+
+    function ensureWechatEmojiCountForRevision(text, formData, minCount = 2, maxCount = 5) {
+        let result = limitWechatEmojis(text, maxCount);
+        let currentCount = countWechatEmojis(result);
+        if (currentCount >= minCount) return result;
+
+        const lines = result.split("\n");
+        const candidates = lines
+            .map((line, index) => ({ line, index }))
+            .filter(item => isGoodEmojiTargetLine(item.line, item.index, formData));
+        if (!candidates.length) return result;
+
+        const priorityCandidates = candidates.slice().sort((a, b) => {
+            const score = (item) => {
+                const line = item.line || "";
+                if (/学生表现[:：]/.test(line)) return 0;
+                if (/改进建议[:：]/.test(line)) return 1;
+                if (/教学内容[:：]/.test(line)) return 2;
+                return 3;
+            };
+            return score(a) - score(b);
+        });
+        const tokensToAdd = pickFallbackWechatEmojiTokens(formData, result);
+
+        while (currentCount < minCount && tokensToAdd.length) {
+            const token = tokensToAdd.shift();
+            const target = priorityCandidates[(currentCount) % priorityCandidates.length];
+            lines[target.index] = appendWechatEmojiToLine(lines[target.index], token);
+            currentCount += 1;
+        }
+
+        return limitWechatEmojis(lines.join("\n"), maxCount);
+    }
+
+    function buildRevisionInstruction(type, formData) {
+        const map = {
+            shorter: `请把当前反馈压缩得短一点，大约减少20%~30%的字数。保留关键事实、主要问题、作业行和称呼，不要删掉最重要的教学判断。`,
+            longer: `请把当前反馈适当写长一点，大约增加80~140个中文字。只能围绕已有事实补充教学判断、原因和后续要求，不允许编造新的课堂表现。`,
+            natural: `请把当前反馈改得更像真实老师发给家长的微信。减少AI味、模板味和书面总结感，多用自然短句，但不要改变事实。`,
+            encourage: `请让语气多一点鼓励和正向引导。先肯定具体表现，再提醒问题和后续要求。鼓励要落到具体动作上，不要空喊加油，也不要无依据夸大。`,
+            strict: `请让语气更严厉、更直接一些。重点把问题和后果说清楚，但只批评学习行为和课堂事实，不攻击学生，不使用羞辱性表达。`,
+            wechat: `请把当前反馈改得更像老师临时随手发给家长的微信：口语一点、短句多一点、少一点栏目感和总结感。可以保留原有标签和换行，但每句话要像真人顺手写出来。不要加表情，不要过分热情，不要编造新事实，不要把作业内容改掉。`,
+            emoji: `请在当前反馈中自然加入微信自带表情，让语气更像老师发微信给家长。默认只加2-3个表情，反馈特别长时最多4个，不要主动加满5个。只能使用这些表情：[强][偷笑][愉快][加油][玫瑰][叹气][擦汗][尴尬][呲牙][庆祝][好的][耶][敲打][拥抱][囧][失望][裂开][难过]。表情要少而自然，放在真正适合的位置，不要堆表情，不要每段都加，不要改变原文事实和结构。`
+        };
+        return map[type] || map.natural;
+    }
+
+    function buildRevisionMessages(type, currentText, formData) {
+        const pronoun = formData.gender === "女" ? "她" : "他";
+        const sectionRule = buildExistingSectionRule(currentText);
+        const homeworkRule = hasSection(currentText, "本周作业") && formData.homework
+            ? `如果原文有“本周作业：${normalizeHomeworkText(formData.homework)}”，必须保留为最后一行，作业内容不要改写。`
+            : "如果原文没有作业，不要新增作业段落。";
+        const suggestionRule = hasSection(currentText, "改进建议")
+            ? "原文已有“改进建议：”时，可以在该段内调整语气，但不要新增新的事实。"
+            : "原文没有“改进建议：”，本次二次修改绝对不要新增“改进建议：”段落，也不要用其他标题变相新增建议段。";
+        const factWhitelist = [
+            `学生：${formData.studentName}`,
+            `性别：${formData.gender}，全文只能使用“${pronoun}”作为第三人称，不要写错人称`,
+            `年级科目：${formData.grade}${formData.subject}`,
+            `教学内容：${formData.knowledge}`,
+            `真实记录：${formatRealNotesForPrompt(formData)}`,
+            `优点：${(formData.selectedHighlights || []).join("、") || "无"}`,
+            `问题：${(formData.selectedWeak || []).join("、") || "无"}`,
+            `正确率：${formData.correctness !== null ? formData.correctness + "%" : "未填写"}`,
+            `改进方向：${formData.selectedSuggestion || "无"}`,
+            `下节课关注点：${formData.nextFocus || "无"}`,
+            `作业：${formData.homework || "无"}`
+        ].join("\n");
+
+        return [
+            {
+                role: "system",
+                content: `你是一位真实教培老师，只负责对已经生成好的课后反馈做二次改写。
+核心原则：不新增事实，不改变学生姓名、日期、科目、称呼和作业；严格沿用原文已有栏目结构；原文没有的栏目不要新增；不要解释修改过程，直接输出完整反馈。`
+            },
+            {
+                role: "user",
+                content: `【二次修改要求】
+${buildRevisionInstruction(type, formData)}
+${type === "wechat" ? "\n【微信随手感额外要求】\n- 少用完整总结句，多用老师自然判断，比如“这块先不用太担心”“现在主要卡在……”“后面我会继续盯一下”。\n- 不要写成正式报告，不要为了口语化而加‘哈、呀、哦’这类语气词。\n- 保留家长能看懂的重点：本节课讲了什么、哪里还行、哪里要改、后面怎么做。" : ""}
+${type === "emoji" ? "\n【加表情额外要求】\n- 只允许使用：[强][偷笑][愉快][加油][玫瑰][叹气][擦汗][尴尬][呲牙][庆祝][好的][耶][敲打][拥抱][囧][失望][裂开][难过]，不要使用其他 emoji 或符号表情。\n- 表情总数默认控制在2-3个；反馈特别长时最多4个；不要主动加满5个。放在自然停顿处，不要每句话都加，不要每段都加。\n- 优点、进步、正确率高可用[强][愉快][庆祝][好的][耶]；继续努力可用[加油]；鼓励和安抚可用[拥抱][玫瑰]；比较轻松的提醒可少量用[偷笑][呲牙]；问题明显、状态不好或有点尴尬时可用[叹气][擦汗][尴尬][囧][失望][裂开][难过]；需要稍微提醒时可少量用[敲打]，但不要过度。\n- 加表情只是让微信感更强，不要改事实，不要新增栏目，不要改变作业内容。" : ""}
+【必须遵守】
+1. 保留第一行称呼或标题行，不要擅自改称呼。
+2. ${sectionRule}
+3. ${homeworkRule}
+4. ${suggestionRule}
+5. 不允许新增迟到、玩手机、没写作业、家长督促等原文和白名单里没有的事实。
+6. 不要写成AI总结，不要出现“整体来看、总体而言、此外、存在一定问题、有待提高、反映出、体现了”等模板词。
+7. 如果正确率低于90%，不要使用“非常棒”“值得表扬”等过强夸奖。
+
+【事实白名单】
+${factWhitelist}
+
+【当前反馈】
+${currentText}
+
+请直接输出二次修改后的完整反馈。`
+            }
+        ];
+    }
+
+    function setRevisionButtonsDisabled(disabled) {
+        document.querySelectorAll(".revise-btn").forEach(btn => {
+            btn.disabled = disabled;
+        });
+    }
+
+    function getDisplayBodyForValidation(text, formData) {
+        const lines = normalizeFeedbackText(text).split("\n").map(line => line.trim()).filter(Boolean);
+        if (!lines.length) return "";
+        const first = lines[0];
+        const title = `${formData.studentName}${formatDateForTitle(formData.date)}${formData.subject}课后反馈`;
+        const greetingPattern = new RegExp(`^${escapeRegExp(formData.studentName)}(爸爸|妈妈|家长)(上午|下午|晚上)好，这是${escapeRegExp(formData.studentName)}${escapeRegExp(formatDateForTitle(formData.date))}${escapeRegExp(formData.subject)}课程反馈$`);
+        if (greetingPattern.test(first) || first === title) {
+            return lines.slice(1).join("\n");
+        }
+        return lines.join("\n");
+    }
+
+    function getRevisionLengthChange(beforeText, afterText, formData) {
+        const beforeLen = getTextLength(getDisplayBodyForValidation(beforeText, formData));
+        const afterLen = getTextLength(getDisplayBodyForValidation(afterText, formData));
+        const diff = afterLen - beforeLen;
+        if (diff >= 10) return `总字数增多${diff}字`;
+        if (diff <= -10) return `总字数减少${Math.abs(diff)}字`;
+        return "总字数基本不变";
+    }
+
+    function getRevisionToneChange(type) {
+        const map = {
+            shorter: "内容更精简",
+            longer: "内容更完整",
+            natural: "语句更自然",
+            wechat: "更像老师微信口吻",
+            emoji: "已加入微信表情（2-5个）",
+            encourage: "语气偏鼓励",
+            strict: "语气更严厉"
+        };
+        return map[type] || "表达已调整";
+    }
+
+    function getRevisionDoneMessage(type, beforeText, afterText, formData) {
+        return `✅ 二次修改完成，${getRevisionLengthChange(beforeText, afterText, formData)}；${getRevisionToneChange(type)}`;
+    }
+
+    function getRevisionValidationIssues(report) {
+        // 二次修改（尤其“长一点/短一点”）不再受初始字数选择限制。
+        // 字数偏多、偏少、学生表现长度只在首次生成时提醒；二次修改后只保留结构、事实、人称、作业、过度表扬等需要老师复看的问题。
+        return getReportReviewItems(report, { ignoreLengthWarnings: true });
+    }
+
+    async function reviseCurrentFeedback(type) {
+        const apiKey = localStorage.getItem(STORAGE_API_KEY);
+        if (!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
+
+        const resultDiv = document.getElementById("feedbackContent");
+        const qualityEl = document.getElementById("qualityReport");
+        const currentText = getCurrentFeedbackText();
+        if (!isValidFeedbackForRevision(currentText)) {
+            alert("请先生成一版反馈，再使用二次修改按钮");
+            return;
+        }
+
+        const clickedBtn = document.querySelector(`.revise-btn[data-revise-type="${type}"]`);
+        const originalText = clickedBtn ? clickedBtn.innerText : "二次修改";
+        try {
+            setRevisionButtonsDisabled(true);
+            if (clickedBtn) clickedBtn.innerText = "修改中...";
+            if (qualityEl) {
+                qualityEl.style.display = "block";
+                qualityEl.className = "quality-report warn";
+                qualityEl.innerText = "正在根据当前反馈做二次修改，请稍候...";
+            }
+
+            const formData = lastGeneratedFormData || getFormData();
+            let revised = await callDeepSeek(apiKey, buildRevisionMessages(type, currentText, formData), 0.35);
+            revised = postProcessFeedback(revised, formData, { rounds: 1 });
+            revised = preserveOriginalRevisionSections(revised, currentText);
+            revised = ensureHomeworkLine(revised, formData);
+            if (type === "emoji") {
+                const emojiBodyText = getDisplayBodyForValidation(revised, formData);
+                const emojiMaxCount = getTextLength(emojiBodyText) >= 320 ? 4 : 3;
+                revised = ensureWechatEmojiCountForRevision(revised, formData, 2, emojiMaxCount);
+                revised = ensureHomeworkLine(revised, formData);
+            }
+
+            resultDiv.innerText = revised;
+
+            if (qualityEl) {
+                const bodyForCheck = getDisplayBodyForValidation(revised, formData);
+                const report = validateFeedback(bodyForCheck, formData);
+                const revisionIssues = getRevisionValidationIssues(report);
+                const doneMessage = getRevisionDoneMessage(type, currentText, revised, formData);
+                qualityEl.style.display = "block";
+                qualityEl.className = `quality-report ${revisionIssues.length ? "warn" : "ok"}`;
+                qualityEl.innerText = revisionIssues.length
+                    ? `${doneMessage}；建议再看一下：${revisionIssues.join("；")}`
+                    : doneMessage;
+            }
+        } catch (err) {
+            if (qualityEl) {
+                qualityEl.style.display = "block";
+                qualityEl.className = "quality-report warn";
+                qualityEl.innerText = `❌ 二次修改失败：${err.message || "未知错误"}`;
+            }
+            alert(`二次修改失败：${err.message || "未知错误"}`);
+        } finally {
+            if (clickedBtn) clickedBtn.innerText = originalText;
+            setRevisionButtonsDisabled(false);
+        }
+    }
+
+    async function onGenerate() {
+        const formData = getFormData();
+        const requiredReport = validateRequiredFields(formData);
+        if (!requiredReport.ok) return;
+
+        const apiKey = localStorage.getItem(STORAGE_API_KEY);
+        if(!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
+        const btn = document.getElementById("generateBtn");
+        const resultDiv = document.getElementById("feedbackContent");
+        const qualityEl = document.getElementById("qualityReport");
+        const original = btn.innerText;
+        btn.innerText = "⚡ 生成中...";
+        btn.disabled = true;
+        resultDiv.innerText = "📡 正在调用AI生成反馈...";
+        if(qualityEl){ qualityEl.style.display="none"; qualityEl.innerText=""; }
+        try {
+            upsertCurrentStudentProfile(false);
+            let feedback = await generateFeedbackWithDeepSeek(formData, apiKey);
+            let finalText = feedback;
+            if (formData.enableGreeting) {
+                const greeting = `${formData.studentName}${formData.greetingTarget}${formData.greetingTime}好，这是${formData.studentName}${formatDateForTitle(formData.date)}${formData.subject}课程反馈`;
+                finalText = `${greeting}\n${feedback}`;
+            }
+            resultDiv.innerText = finalText;
+            lastGeneratedFormData = formData;
+            const finalReport = validateFeedback(feedback, formData);
+            const historyReport = getHistoricalRepeatReport(feedback, formData);
+            saveFeedbackHistory(feedback, formData);
+            if(qualityEl){
+                qualityEl.style.display = "block";
+                const reviewItems = getReportReviewItems(finalReport);
+                if (historyReport.severe) reviewItems.push(`历史重复度偏高：${historyReport.message}`);
+                const okAll = finalReport.ok && !historyReport.severe && reviewItems.length === 0;
+                qualityEl.className = `quality-report ${okAll ? "ok" : "warn"}`;
+                if (reviewItems.length) {
+                    qualityEl.innerText = `⚠️ 生成完成，建议看一下：${reviewItems.join("；")}；历史检验：${historyReport.message}`;
+                } else {
+                    qualityEl.innerText = `✅ 校验通过：正文字数${finalReport.totalLen}，学生表现${finalReport.performanceLen}字；历史检验：${historyReport.message}`;
+                }
+            }
+        } catch(err) {
+            resultDiv.innerText = `❌ 生成失败：${err.message || "未知错误"}`;
+            if(qualityEl){ qualityEl.style.display="block"; qualityEl.className="quality-report warn"; qualityEl.innerText = `错误详情：${err.message}`; }
+        } finally {
+            btn.innerText = original;
+            btn.disabled = false;
+        }
+    }
+
+    function copyFeedback() { const text = document.getElementById("feedbackContent").innerText; if(text && !text.includes("点击上方按钮")) navigator.clipboard.writeText(text).then(()=>alert("✅ 已复制")).catch(()=>alert("复制失败")); else alert("没有可复制的内容"); }
+    function setDefaultDate() { const inp = document.getElementById("date"); if(inp && !inp.value) { const d=new Date(); inp.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; } }
+    function loadApiKey() { const k = localStorage.getItem(STORAGE_API_KEY); if(k) document.getElementById("apiKeyInput").value = k; }
+    function saveApiKey() { const key = document.getElementById("apiKeyInput").value.trim(); if(key) { localStorage.setItem(STORAGE_API_KEY, key); alert(`API Key已保存 (模型: ${DEEPSEEK_MODEL})`); } else alert("请输入密钥"); }
+    function toggleGreetingControls() {
+        const enabled = document.getElementById("enableGreetingCheckbox").checked;
+        const targetSel = document.getElementById("greetingTarget");
+        const timeSel = document.getElementById("greetingTime");
+        if (targetSel && timeSel) {
+            targetSel.disabled = !enabled;
+            timeSel.disabled = !enabled;
+            if (!enabled) {
+                targetSel.classList.add("disabled-select");
+                timeSel.classList.add("disabled-select");
+            } else {
+                targetSel.classList.remove("disabled-select");
+                timeSel.classList.remove("disabled-select");
+            }
+        }
+        localStorage.setItem(STORAGE_GREETING_SWITCH, enabled ? "true" : "false");
+    }
+    function initGreetingSwitch() {
+        const saved = localStorage.getItem(STORAGE_GREETING_SWITCH);
+        const cb = document.getElementById("enableGreetingCheckbox");
+        if (cb) { if (saved !== null) cb.checked = saved === "true"; toggleGreetingControls(); cb.addEventListener("change", toggleGreetingControls); }
+    }
+
+    function init() {
+        loadLists(); renderHighlights(); renderWeakPoints(); renderSuggestions(); renderEncouragements(); initCorrectnessSlider(); bindRadioStyle(); bindCheckboxStyle(); setDefaultDate(); loadApiKey(); initGreetingSwitch(); initStudentMemory();
+        ["studentName", "knowledge"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener("input", clearRequiredErrors);
+        });
+        document.getElementById("addHighlightBtn").onclick = addHighlight; document.getElementById("addWeakBtn").onclick = addWeakPoint; document.getElementById("addSuggestionBtn").onclick = addSuggestion; document.getElementById("addEncouragementBtn").onclick = addEncouragement;
+        document.getElementById("generateBtn").onclick = onGenerate; document.getElementById("saveApiKeyBtn").onclick = saveApiKey; document.getElementById("copyFeedbackBtn").onclick = copyFeedback; document.getElementById("clearHistoryBtn").onclick = clearFeedbackHistory;
+        const quickBtn = document.getElementById("quickGenerateBtn"); if (quickBtn) quickBtn.onclick = onQuickGenerate;
+        document.querySelectorAll(".revise-btn").forEach(btn => {
+            btn.onclick = () => reviseCurrentFeedback(btn.getAttribute("data-revise-type"));
+        });
+        ["newHighlightInput","newWeakInput","newSuggestionInput","newEncouragementInput"].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener("keypress", e => { if(e.key==="Enter") { if(id==="newHighlightInput") addHighlight(); else if(id==="newWeakInput") addWeakPoint(); else if(id==="newSuggestionInput") addSuggestion(); else if(id==="newEncouragementInput") addEncouragement(); } }); });
+        document.querySelectorAll('.temp-option, .tone-option').forEach(opt => { const radio = opt.querySelector('input'); if(radio && radio.checked) opt.classList.add('selected'); });
+    }
+    init();
+</script>
+</body>
+</html>
