@@ -212,7 +212,7 @@
         if (!confirm("确定删除"" + profile.name + ""的学生记忆吗？\n（包含 " + sc + " 条学习记录）")) return;
 
         try {
-            await fetch("http://127.0.0.1:5000/api/students/" + profile.id, { method: "DELETE" });
+            await fetch("/api/students/" + profile.id, { method: "DELETE" });
             await renderStudentMemoryList();
             MODULE.renderSessionHistory("");
             alert("✅ 已删除该学生记忆");

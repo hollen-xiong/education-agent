@@ -12,17 +12,25 @@
     var MODULE = {};
 
     // ========== 基础配置 ==========
-    var BASE = "http://127.0.0.1:5000";
+    var BASE = "";  // 空 = 相对路径，同源访问
 
     /** 设置 API 基础地址（部署时可改） */
     MODULE.setBaseUrl = function (url) {
         BASE = url.replace(/\/+$/, "");
     };
 
+    /** 获取当前 base URL */
+    function baseUrl() {
+        return BASE || window.location.origin;
+    }
+
     /** 健康检查 */
     MODULE.healthCheck = async function () {
         try {
-            var resp = await fetch(BASE + "/api/students?search=", { signal: AbortSignal.timeout(3000) });
+            var controller = new AbortController();
+            var timeoutId = setTimeout(function () { controller.abort(); }, 3000);
+            var resp = await fetch(baseUrl() + "/api/students?search=", { signal: controller.signal });
+            clearTimeout(timeoutId);
             return { ok: resp.ok, status: resp.status };
         } catch (e) {
             return { ok: false, status: 0, error: e.message };
