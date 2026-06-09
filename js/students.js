@@ -209,7 +209,7 @@
         var profile = await MODULE.findProfile(name);
         if (!profile) { alert("当前姓名还没有保存记录"); return; }
         var sc = profile.session_count || 0;
-        if (!confirm("确定删除"" + profile.name + ""的学生记忆吗？\n（包含 " + sc + " 条学习记录）")) return;
+        if (!confirm("确定删除 “" + profile.name + "” 的学生记忆吗？\n（包含 " + sc + " 条学习记录）")) return;
 
         try {
             await fetch("/api/students/" + profile.id, { method: "DELETE" });

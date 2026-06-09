@@ -319,5 +319,19 @@
 <script src="js/students.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
+<script>
+// 保底连接检测（模块加载完成后执行）
+setTimeout(async function() {
+    var el = document.getElementById("connectionStatus");
+    if (!el) return;
+    try {
+        var r = await fetch("/api/students?search=");
+        if (r.ok) {
+            el.innerHTML = "🟢 已连接";
+            el.style.background = "#dcfce7"; el.style.color = "#166534";
+        }
+    } catch(e) {}
+}, 500);
+</script>
 </body>
 </html>
