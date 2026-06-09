@@ -35,14 +35,36 @@
 body {
     background: var(--color-bg);
     font-family: system-ui, 'Segoe UI', 'Noto Sans', -apple-system, Roboto, Helvetica, Arial, sans-serif;
-    padding: 20px 16px 48px;
+    padding: 20px 24px 48px;
     color: var(--color-text);
 }
 
 /* ----- Layout ----- */
 .container {
-    max-width: 780px;
+    max-width: 1200px;
     margin: 0 auto;
+}
+
+/* 两列卡片布局 */
+.card-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.card-row .card { margin-bottom: 20px; }
+
+/* 学生信息占 60%，课程内容占 40% */
+.card-row.student-lesson {
+    grid-template-columns: 1.4fr 1fr;
+}
+
+@media (max-width: 900px) {
+    .card-row {
+        grid-template-columns: 1fr;
+    }
+    .card-row.student-lesson {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ----- Cards ----- */
@@ -367,9 +389,16 @@ input[type="range"] {
 }
 
 /* ----- Grid Helpers ----- */
-.grid-2cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.grid-3cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-.grid-4cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+.grid-2cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.grid-4cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; }
+
+@media (max-width: 900px) {
+    .grid-4cols { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+    .grid-3cols, .grid-4cols { grid-template-columns: 1fr; }
+}
 
 /* ----- Param Bar ----- */
 .param-bar {
@@ -1229,9 +1258,18 @@ input[type="range"] {
 }
 
 /* ----- Responsive ----- */
+@media (max-width: 900px) {
+    .card-row, .card-row.student-lesson {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 640px) {
-    .grid-3cols, .grid-4cols {
-        grid-template-columns: 1fr 1fr;
+    .grid-2cols, .grid-3cols, .grid-4cols {
+        grid-template-columns: 1fr;
+    }
+    body {
+        padding: 10px 8px 32px;
     }
     .param-bar {
         flex-direction: column;
@@ -1253,9 +1291,6 @@ input[type="range"] {
 }
 
 @media (max-width: 480px) {
-    .grid-3cols, .grid-4cols {
-        grid-template-columns: 1fr;
-    }
     .revise-actions {
         grid-template-columns: 1fr;
     }
