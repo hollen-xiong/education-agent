@@ -634,16 +634,16 @@
 
         if (feedback.indexOf("教学内容：") < 0) issues.push("缺少教学内容段落");
         if (feedback.indexOf("学生表现：") < 0) issues.push("缺少学生表现段落");
-        if (performanceLen < minWords * 0.52) warnings.push("学生表现不足" + Math.floor(minWords * 0.52) + "字（当前" + performanceLen + "字，可点"长一点"补充）");
-        if (totalLen < minWords) warnings.push("总字数偏少（当前" + totalLen + "字，目标" + minWords + "~" + maxWords + "，可点"长一点"）");
-        if (totalLen > maxWords + 10) warnings.push("总字数偏多（当前" + totalLen + "字，目标最多" + maxWords + "字左右，可点"短一点"）");
+        if (performanceLen < minWords * 0.52) warnings.push("学生表现不足" + Math.floor(minWords * 0.52) + "字（当前" + performanceLen + "字，可点「长一点」补充）");
+        if (totalLen < minWords) warnings.push("总字数偏少（当前" + totalLen + "字，目标" + minWords + "~" + maxWords + "，可点「长一点」）");
+        if (totalLen > maxWords + 10) warnings.push("总字数偏多（当前" + totalLen + "字，目标最多" + maxWords + "字左右，可点「短一点」）");
         if (formData && !formData.shouldGenerateSuggestion && feedback.indexOf("改进建议：") >= 0) issues.push("不应生成改进建议段落");
 
         var homework = normalizeHomeworkText(formData && formData.homework || "");
         if (homework) {
             var lines = MODULE.normalizeText(feedback).split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
             var expectedHomeworkLine = "本周作业：" + homework;
-            if (lines.indexOf(expectedHomeworkLine) < 0) issues.push("作业必须单独成行，且格式为"本周作业：..."");
+            if (lines.indexOf(expectedHomeworkLine) < 0) issues.push("作业必须单独成行，且格式为「本周作业：...」");
             else if (lines[lines.length - 1] !== expectedHomeworkLine) issues.push("作业必须放在最后一行");
         } else if (/\n\s*(本周作业|作业)[:：]/.test(feedback)) {
             issues.push("未填写作业时不应生成作业段落");
