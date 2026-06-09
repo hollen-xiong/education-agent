@@ -333,6 +333,21 @@
         return MODULE.getStorageReport();
     };
 
+    // ========== 批量生成 ==========
+
+    MODULE.batchGenerate = async function (students, shared, temperature) {
+        try {
+            var result = await apiPost("/api/ai/batch-generate", {
+                students: students,
+                shared: shared,
+                temperature: temperature || 0.42,
+            });
+            return result;
+        } catch (e) {
+            throw new Error("批量生成失败: " + e.message);
+        }
+    };
+
     // ========== 导入导出 ==========
 
     MODULE.exportAll = async function () {

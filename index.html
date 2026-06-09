@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>教培助手 v3.0 · 真实风格反馈生成器</title>
+    <title>教培助手 v3.1 · 真实风格反馈生成器</title>
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 <div class="container">
     <div style="margin-bottom: 16px;">
-        <h2 style="font-weight: 700; letter-spacing: -0.3px;">📝 教培助手 <span style="font-size:0.9rem;color:#64748b;">v3.0</span></h2>
+        <h2 style="font-weight: 700; letter-spacing: -0.3px;">📝 教培助手 <span style="font-size:0.9rem;color:#64748b;">v3.1</span></h2>
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <span id="connectionStatus" style="font-size:0.75rem;padding:3px 10px;border-radius:20px;background:#fee2e2;color:#dc2626;">🔴 后端未连接</span>
+            <label id="batchModeToggle" class="batch-mode-toggle" title="切换批量模式">
+                <input type="checkbox" id="batchModeCheckbox"> 📋 批量模式
+            </label>
             <a href="javascript:void(0)" onclick="document.getElementById('settingsModal').style.display='flex'" style="font-size:0.75rem;color:#2563eb;">⚙️ 服务器设置</a>
             <a href="javascript:void(0)" id="exportDataBtn" style="font-size:0.75rem;color:#059669;">📤 导出数据</a>
             <a href="javascript:void(0)" id="importDataBtn" style="font-size:0.75rem;color:#7c3aed;">📥 导入数据</a>
@@ -43,8 +46,11 @@
     <!-- ① 学生信息 -->
     <div class="card required-section" data-required-group="student">
         <div class="card-header">① 学生信息 <span class="required-mark">必填</span></div>
-        <div class="section-helper">先把学生身份填清楚，后面生成时会继续沿用原来的性别、学段、科目逻辑。</div>
-        <div class="grid-4cols">
+        <div class="section-helper" id="studentSectionHelper">先把学生身份填清楚，后面生成时会继续沿用原来的性别、学段、科目逻辑。</div>
+        <div class="section-helper" id="batchSectionHelper" style="display:none;">在下方表格中填写多位学生的信息，公共的课堂内容和优缺点将应用于所有学生。</div>
+
+        <!-- 单人模式字段 -->
+        <div id="singleStudentFields" class="grid-4cols">
             <div class="field-group">
                 <label>🧑‍🎓 学生姓名 <span class="required-mark">必填</span></label>
                 <div class="student-name-wrapper">
@@ -57,33 +63,6 @@
                     <button type="button" class="mini-memory-btn danger" id="deleteStudentBtn">删除</button>
                 </div>
                 <div class="hint">生成反馈或点击保存后，会记住姓名、学段、性别和科目；下次可从姓名栏下拉选择。</div>
-                <!-- 学生备注 -->
-                <div class="field-group" style="margin-top: 12px;">
-                    <label>📝 学生备注 <span class="optional-mark">选填</span></label>
-                    <textarea id="studentNotes" rows="1" placeholder="例：基础薄弱但认真、性格内向、需要多鼓励…" style="resize: vertical;"></textarea>
-                    <div class="hint">记录学习特点、性格等，帮助生成更贴切的反馈。</div>
-                </div>
-                <!-- 阶段成绩 -->
-                <div class="field-group" style="margin-top: 12px;">
-                    <label>📊 各阶段成绩 <span class="optional-mark">选填</span></label>
-                    <div id="stageRecordsArea" class="stage-records-area">
-                        <div class="stage-record-row">
-                            <select class="stage-grade" style="width:auto;min-width:80px;">
-                                <option value="">学段</option>
-                                <option value="小学">小学</option>
-                                <option value="初一">初一</option><option value="初二">初二</option><option value="初三">初三</option>
-                                <option value="高一">高一</option><option value="高二">高二</option><option value="高三">高三</option>
-                            </select>
-                            <input type="text" class="stage-subject" placeholder="科目" style="width:80px;">
-                            <input type="number" class="stage-score" placeholder="分数" min="0" max="100" style="width:70px;">
-                            <input type="text" class="stage-notes" placeholder="备注（如：函数薄弱）" style="flex:1;min-width:120px;">
-                            <button type="button" class="mini-memory-btn" onclick="App.ui.addStageRecord()" style="white-space:nowrap;">➕ 添加</button>
-                        </div>
-                    </div>
-                    <div class="hint">记录各学段的成绩和薄弱点，帮助生成更有针对性的反馈。</div>
-                </div>
-                <!-- 学习历史 -->
-                <div id="studentSessionHistory" class="session-history" style="margin-top: 12px;"></div>
             </div>
             <div class="field-group">
                 <label>⚧ 性别 <span class="required-mark">必填</span></label>
@@ -119,6 +98,63 @@
                     <option value="政治">政治</option>
                 </select>
             </div>
+        </div>
+
+        <!-- 批量模式：学生表格 -->
+        <div id="batchStudentTable" style="display:none;">
+            <div class="batch-toolbar">
+                <button type="button" class="small-btn" id="batchAddStudentBtn" style="background:#2563eb;color:white;">➕ 添加学生</button>
+                <button type="button" class="small-btn" id="batchLoadSavedBtn" style="background:#059669;color:white;">📋 从已保存学生加载</button>
+                <span class="hint" style="margin-left:8px;">已添加 <strong id="batchStudentCount">0</strong> 名学生</span>
+            </div>
+            <div class="batch-table-wrapper">
+                <table class="batch-table" id="batchTable">
+                    <thead>
+                        <tr>
+                            <th style="width:35px;">#</th>
+                            <th>姓名 <span class="required-mark">*</span></th>
+                            <th>性别</th>
+                            <th>年级</th>
+                            <th>科目</th>
+                            <th style="width:50px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batchTableBody">
+                        <!-- JS 动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="batch-empty-hint" id="batchEmptyHint">👆 点击"添加学生"或"从已保存学生加载"来添加学生</div>
+        </div>
+
+        <!-- 共享字段（两种模式都可见） -->
+        <div style="margin-top:16px;">
+            <div class="field-group">
+                <label>📝 学生备注 <span class="optional-mark">选填</span></label>
+                <textarea id="studentNotes" rows="1" placeholder="例：基础薄弱但认真、性格内向、需要多鼓励…" style="resize: vertical;"></textarea>
+                <div class="hint">记录学习特点、性格等，帮助生成更贴切的反馈。</div>
+            </div>
+            <!-- 阶段成绩 -->
+            <div class="field-group" style="margin-top: 12px;">
+                <label>📊 各阶段成绩 <span class="optional-mark">选填</span></label>
+                <div id="stageRecordsArea" class="stage-records-area">
+                    <div class="stage-record-row">
+                        <select class="stage-grade" style="width:auto;min-width:80px;">
+                            <option value="">学段</option>
+                            <option value="小学">小学</option>
+                            <option value="初一">初一</option><option value="初二">初二</option><option value="初三">初三</option>
+                            <option value="高一">高一</option><option value="高二">高二</option><option value="高三">高三</option>
+                        </select>
+                        <input type="text" class="stage-subject" placeholder="科目" style="width:80px;">
+                        <input type="number" class="stage-score" placeholder="分数" min="0" max="100" style="width:70px;">
+                        <input type="text" class="stage-notes" placeholder="备注（如：函数薄弱）" style="flex:1;min-width:120px;">
+                        <button type="button" class="mini-memory-btn" onclick="App.ui.addStageRecord()" style="white-space:nowrap;">➕ 添加</button>
+                    </div>
+                </div>
+                <div class="hint">记录各学段的成绩和薄弱点，帮助生成更有针对性的反馈。</div>
+            </div>
+            <!-- 学习历史 -->
+            <div id="studentSessionHistory" class="session-history" style="margin-top: 12px;"></div>
         </div>
     </div>
 
@@ -305,6 +341,22 @@
         </div>
     </div>
 
+    <!-- 批量生成进度 -->
+    <div id="batchProgressCard" class="card batch-progress-card" style="display:none;">
+        <div class="card-header">📊 批量生成进度</div>
+        <div class="batch-progress-bar-wrapper">
+            <div class="batch-progress-bar" id="batchProgressBar" style="width:0%;"></div>
+        </div>
+        <div class="batch-progress-text" id="batchProgressText">准备中...</div>
+        <div class="batch-progress-list" id="batchProgressList"></div>
+    </div>
+
+    <!-- 批量结果汇总 -->
+    <div id="batchResultsCard" class="card batch-results-card" style="display:none;">
+        <div class="card-header">📋 批量生成结果 <span id="batchResultsSummary"></span></div>
+        <div id="batchResultsList" class="batch-results-list"></div>
+    </div>
+
     <!-- 生成按钮 -->
     <div class="generate-actions">
         <button class="generate-btn" id="generateBtn">✨ 一键生成反馈</button>
@@ -332,7 +384,7 @@
     </div>
 
     <div class="footnote">
-        🧠 deepseek-chat · 真实老师文风优化 · 常用优缺点适配 · 自动识别情景 · 历史检验 · 必填更清晰
+        🧠 deepseek-chat · v3.1 批量模式 · 真实老师文风优化 · 常用优缺点适配 · 自动识别情景 · 历史检验
     </div>
 </div>
 

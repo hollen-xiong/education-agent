@@ -15,6 +15,7 @@ desktop.ini
 # Node (预留后续构建工具)
 node_modules/
 dist/
+build/
 .cache/
 
 # 日志

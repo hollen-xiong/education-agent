@@ -961,6 +961,273 @@ input[type="range"] {
     flex: 1;
 }
 
+/* ----- Batch Mode Toggle ----- */
+.batch-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    user-select: none;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+}
+.batch-mode-toggle input { display: none; }
+.batch-mode-toggle.active {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #3b82f6;
+}
+
+/* ----- Batch Table ----- */
+.batch-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.batch-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    max-height: 420px;
+    overflow-y: auto;
+}
+.batch-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.batch-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8fafc;
+}
+.batch-table th {
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.78rem;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+.batch-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.batch-table tbody tr:hover { background: #f8fafc; }
+.batch-table tbody tr:last-child td { border-bottom: none; }
+.batch-table input,
+.batch-table select {
+    width: 100%;
+    padding: 7px 10px;
+    font-size: 0.82rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    min-width: 70px;
+}
+.batch-table input:focus,
+.batch-table select:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+.batch-table .batch-row-num {
+    text-align: center;
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+.batch-table .batch-remove-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+.batch-table .batch-remove-btn:hover { background: #fef2f2; }
+.batch-empty-hint {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    padding: 28px 16px;
+}
+.batch-student-count { font-weight: 700; color: #2563eb; }
+
+/* ----- Batch Progress ----- */
+.batch-progress-card { display: none; }
+.batch-progress-bar-wrapper {
+    background: #e2e8f0;
+    border-radius: 20px;
+    height: 12px;
+    margin: 12px 0;
+    overflow: hidden;
+}
+.batch-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    border-radius: 20px;
+    transition: width 0.3s ease;
+    min-width: 0;
+}
+.batch-progress-text {
+    font-size: 0.85rem;
+    color: #475569;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+.batch-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.batch-progress-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.82rem;
+    padding: 6px 10px;
+    border-radius: 12px;
+}
+.batch-progress-item.running {
+    background: #eff6ff;
+    color: #1e40af;
+}
+.batch-progress-item.done {
+    background: #f0fdf4;
+    color: #166534;
+}
+.batch-progress-item.error {
+    background: #fef2f2;
+    color: #dc2626;
+}
+.batch-progress-item .bp-icon { font-size: 1rem; flex-shrink: 0; }
+
+/* ----- Batch Results ----- */
+.batch-results-card { display: none; }
+.batch-results-summary {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 400;
+}
+.batch-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 12px;
+}
+.batch-result-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 14px 16px;
+    background: #fafbfc;
+}
+.batch-result-item.error-item {
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+.batch-result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.batch-result-student {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1e293b;
+}
+.batch-result-student .student-meta {
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-left: 6px;
+}
+.batch-result-actions {
+    display: flex;
+    gap: 6px;
+}
+.batch-result-content {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: #334155;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px 14px;
+    border: 1px solid #f1f5f9;
+}
+.batch-result-error {
+    font-size: 0.82rem;
+    color: #dc2626;
+}
+
+/* ----- Load Saved Students Modal (Batch) ----- */
+.batch-load-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+.batch-load-modal {
+    background: white;
+    border-radius: 24px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.batch-load-modal h3 { margin-bottom: 12px; }
+.batch-load-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+.batch-load-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.batch-load-row:hover { background: #f8fafc; }
+.batch-load-row.selected { background: #eff6ff; border-color: #93c5fd; }
+.batch-load-row .student-info { flex: 1; }
+.batch-load-row .student-name { font-weight: 600; font-size: 0.9rem; }
+.batch-load-row .student-detail { font-size: 0.75rem; color: #64748b; }
+.batch-load-modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
 /* ----- Responsive ----- */
 @media (max-width: 640px) {
     .grid-3cols, .grid-4cols {

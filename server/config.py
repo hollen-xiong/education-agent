@@ -2,14 +2,19 @@
 server/config.py — 服务器配置
 """
 import os
+import sys
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-# 数据库——确保 data 目录存在
-_DATA_DIR = os.path.join(BASE_DIR, "data")
-os.makedirs(_DATA_DIR, exist_ok=True)
-DATABASE_PATH = os.path.join(_DATA_DIR, "jiaopei.db")
-SQLALCHEMY_DATABASE_URI = "sqlite:///" + DATABASE_PATH.replace("\\", "/")
+# 数据库——优先使用环境变量（PyInstaller 打包时由 run.py 设置）
+_JIAOPEI_DB_PATH = os.environ.get("JIAOPEI_DB_PATH")
+if _JIAOPEI_DB_PATH:
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + _JIAOPEI_DB_PATH.replace("\\", "/")
+else:
+    _DATA_DIR = os.path.join(BASE_DIR, "data")
+    os.makedirs(_DATA_DIR, exist_ok=True)
+    DATABASE_PATH = os.path.join(_DATA_DIR, "jiaopei.db")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + DATABASE_PATH.replace("\\", "/")
 
 # Flask
 SECRET_KEY = os.environ.get("SECRET_KEY", "jiaopei-dev-secret-change-in-production")

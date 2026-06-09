@@ -18,8 +18,9 @@ from server.routes import (
 )
 
 
-def create_app():
-    app = Flask(__name__, static_folder="../", static_url_path="")
+def create_app(frozen_dir=None):
+    static_folder = frozen_dir if frozen_dir else "../"
+    app = Flask(__name__, static_folder=static_folder, static_url_path="")
     app.config["SECRET_KEY"] = SECRET_KEY
     app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
     app.config["JSON_AS_ASCII"] = False

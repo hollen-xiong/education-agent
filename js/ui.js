@@ -590,6 +590,11 @@
     }
 
     async function onGenerate() {
+        // 批量模式走批量生成
+        if (isBatchMode) {
+            return onBatchGenerate();
+        }
+
         var formData = MODULE.getFormData();
         var requiredReport = validateRequiredFields(formData);
         if (!requiredReport.ok) return;
@@ -797,6 +802,456 @@
         }
     }
 
+    // ========== 批量模式 ==========
+
+    var batchStudents = [];  // [{name, gender, grade, subject}]
+    var isBatchMode = false;
+
+    function toggleBatchMode() {
+        isBatchMode = document.getElementById("batchModeCheckbox").checked;
+        var toggle = document.getElementById("batchModeToggle");
+        var singleFields = document.getElementById("singleStudentFields");
+        var batchTable = document.getElementById("batchStudentTable");
+        var genBtn = document.getElementById("generateBtn");
+        var quickBtn = document.getElementById("quickGenerateBtn");
+        var reviseActions = document.querySelector(".revise-actions");
+        var helperSingle = document.getElementById("studentSectionHelper");
+        var helperBatch = document.getElementById("batchSectionHelper");
+
+        if (isBatchMode) {
+            toggle.classList.add("active");
+            singleFields.style.display = "none";
+            batchTable.style.display = "";
+            genBtn.innerText = "✨ 批量生成反馈（" + batchStudents.length + "名学生）";
+            genBtn.style.background = "linear-gradient(135deg, #7c3aed, #6366f1)";
+            if (helperSingle) helperSingle.style.display = "none";
+            if (helperBatch) helperBatch.style.display = "";
+            if (quickBtn) quickBtn.style.display = "none";
+            if (reviseActions) reviseActions.style.display = "none";
+            // 隐藏快速生成面板
+            var quickPanel = document.querySelector(".quick-generate-panel");
+            if (quickPanel) quickPanel.style.display = "none";
+            // 在批量模式下隐藏学习历史
+            var sessionHistory = document.getElementById("studentSessionHistory");
+            if (sessionHistory) sessionHistory.style.display = "none";
+        } else {
+            toggle.classList.remove("active");
+            singleFields.style.display = "";
+            batchTable.style.display = "none";
+            genBtn.innerText = "✨ 一键生成反馈";
+            genBtn.style.background = "";
+            if (helperSingle) helperSingle.style.display = "";
+            if (helperBatch) helperBatch.style.display = "none";
+            if (quickBtn) quickBtn.style.display = "";
+            if (reviseActions) reviseActions.style.display = "";
+            var quickPanel2 = document.querySelector(".quick-generate-panel");
+            if (quickPanel2) quickPanel2.style.display = "";
+            var sessionHistory2 = document.getElementById("studentSessionHistory");
+            if (sessionHistory2) sessionHistory2.style.display = "";
+        }
+    }
+
+    function addBatchStudentRow(data) {
+        data = data || {};
+        var name = data.name || "";
+        var gender = data.gender || "男";
+        var grade = data.grade || "初中";
+        var subject = data.subject || "数学";
+
+        batchStudents.push({name: name, gender: gender, grade: grade, subject: subject});
+        renderBatchTable();
+        updateBatchStudentCount();
+    }
+
+    function renderBatchTable() {
+        var tbody = document.getElementById("batchTableBody");
+        var table = document.getElementById("batchTable");
+        var emptyHint = document.getElementById("batchEmptyHint");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+        if (batchStudents.length === 0) {
+            if (table) table.style.display = "none";
+            if (emptyHint) emptyHint.style.display = "";
+        } else {
+            if (table) table.style.display = "";
+            if (emptyHint) emptyHint.style.display = "none";
+        }
+
+        batchStudents.forEach(function (s, i) {
+            var tr = document.createElement("tr");
+            tr.innerHTML =
+                '<td class="batch-row-num">' + (i + 1) + '</td>' +
+                '<td><input type="text" class="batch-name" value="' + escapeAttr(s.name) + '" placeholder="学生姓名" data-idx="' + i + '"></td>' +
+                '<td><select class="batch-gender" data-idx="' + i + '">' +
+                    '<option value="男"' + (s.gender === "男" ? ' selected' : '') + '>男</option>' +
+                    '<option value="女"' + (s.gender === "女" ? ' selected' : '') + '>女</option>' +
+                '</select></td>' +
+                '<td><select class="batch-grade" data-idx="' + i + '">' +
+                    gradeOptions(s.grade) +
+                '</select></td>' +
+                '<td><select class="batch-subject" data-idx="' + i + '">' +
+                    subjectOptions(s.subject) +
+                '</select></td>' +
+                '<td><button class="batch-remove-btn" onclick="App.ui.removeBatchStudent(' + i + ')" title="移除">✕</button></td>';
+            tbody.appendChild(tr);
+        });
+
+        // 绑定输入事件
+        tbody.querySelectorAll(".batch-name, .batch-gender, .batch-grade, .batch-subject").forEach(function (el) {
+            el.addEventListener("change", function () {
+                var idx = parseInt(el.getAttribute("data-idx"));
+                if (isNaN(idx) || idx >= batchStudents.length) return;
+                var field = el.className.replace("batch-", "");
+                if (field === "name") batchStudents[idx].name = el.value.trim();
+                else batchStudents[idx][field] = el.value;
+            });
+        });
+    }
+
+    function gradeOptions(selected) {
+        var grades = ["小学", "初一", "初二", "初三", "高一", "高二", "高三"];
+        return grades.map(function (g) {
+            return '<option value="' + g + '"' + (g === selected ? ' selected' : '') + '>' + g + '</option>';
+        }).join("");
+    }
+
+    function subjectOptions(selected) {
+        var subs = ["数学", "物理", "语文", "英语", "化学", "生物", "历史", "地理", "政治"];
+        return subs.map(function (s) {
+            return '<option value="' + s + '"' + (s === selected ? ' selected' : '') + '>' + s + '</option>';
+        }).join("");
+    }
+
+    function escapeAttr(str) {
+        return String(str || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    MODULE.removeBatchStudent = function (index) {
+        if (index >= 0 && index < batchStudents.length) {
+            batchStudents.splice(index, 1);
+            renderBatchTable();
+            updateBatchStudentCount();
+        }
+    };
+
+    MODULE.addBatchStudent = function () {
+        addBatchStudentRow();
+    };
+
+    function updateBatchStudentCount() {
+        var countEl = document.getElementById("batchStudentCount");
+        var genBtn = document.getElementById("generateBtn");
+        if (countEl) countEl.innerText = batchStudents.length;
+        if (genBtn && isBatchMode) {
+            genBtn.innerText = "✨ 批量生成反馈（" + batchStudents.length + "名学生）";
+        }
+    }
+
+    function getBatchStudents() {
+        // 从表格中重新收集（确保读取最新输入）
+        var result = [];
+        var nameInputs = document.querySelectorAll("#batchTableBody .batch-name");
+        var genderSelects = document.querySelectorAll("#batchTableBody .batch-gender");
+        var gradeSelects = document.querySelectorAll("#batchTableBody .batch-grade");
+        var subjectSelects = document.querySelectorAll("#batchTableBody .batch-subject");
+
+        for (var i = 0; i < nameInputs.length; i++) {
+            var name = (nameInputs[i].value || "").trim();
+            if (name) {
+                result.push({
+                    name: name,
+                    gender: genderSelects[i] ? genderSelects[i].value : "男",
+                    grade: gradeSelects[i] ? gradeSelects[i].value : "初中",
+                    subject: subjectSelects[i] ? subjectSelects[i].value : "数学"
+                });
+            }
+        }
+        return result;
+    }
+
+    function showLoadSavedStudentsModal() {
+        // 创建模态框
+        var overlay = document.createElement("div");
+        overlay.className = "batch-load-modal-overlay";
+        overlay.id = "batchLoadModal";
+        overlay.style.display = "flex";
+
+        var modal = document.createElement("div");
+        modal.className = "batch-load-modal";
+        modal.innerHTML =
+            '<h3>📋 从已保存学生中选择</h3>' +
+            '<div style="font-size:0.82rem;color:#64748b;margin-bottom:12px;">点击学生行选中/取消，选中后点击"添加到列表"。</div>' +
+            '<div class="batch-load-list" id="batchLoadList">加载中...</div>' +
+            '<div class="batch-load-modal-actions">' +
+                '<button class="small-btn" id="batchLoadCancel" style="background:#e2e8f0;color:#334155;">取消</button>' +
+                '<button class="small-btn" id="batchLoadConfirm" style="background:#2563eb;color:white;">➕ 添加到列表</button>' +
+            '</div>';
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        overlay.addEventListener("click", function (e) {
+            if (e.target === overlay) { overlay.remove(); }
+        });
+        document.getElementById("batchLoadCancel").onclick = function () { overlay.remove(); };
+
+        // 加载学生列表
+        AC.getStudents().then(function (students) {
+            var listEl = document.getElementById("batchLoadList");
+            if (!listEl) return;
+            if (!students || students.length === 0) {
+                listEl.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">暂无已保存的学生</div>';
+                return;
+            }
+            var selectedSet = {};
+            listEl.innerHTML = "";
+            students.forEach(function (s) {
+                var row = document.createElement("div");
+                row.className = "batch-load-row";
+                row.dataset.name = s.name;
+                row.dataset.gender = s.gender || "男";
+                row.dataset.grade = s.grade || "初中";
+                row.dataset.subject = s.subject || "数学";
+                row.innerHTML =
+                    '<div class="student-info">' +
+                        '<div class="student-name">' + escapeHtml(s.name) + '</div>' +
+                        '<div class="student-detail">' + (s.gender || "男") + ' · ' + (s.grade || "初中") + ' · ' + (s.subject || "数学") + '</div>' +
+                    '</div>' +
+                    '<span style="font-size:1.2rem;color:#94a3b8;">○</span>';
+                row.onclick = function () {
+                    row.classList.toggle("selected");
+                    var sel = row.classList.contains("selected");
+                    if (sel) {
+                        selectedSet[s.name] = {name: s.name, gender: s.gender || "男", grade: s.grade || "初中", subject: s.subject || "数学"};
+                        row.querySelector("span").innerText = "●";
+                        row.querySelector("span").style.color = "#2563eb";
+                    } else {
+                        delete selectedSet[s.name];
+                        row.querySelector("span").innerText = "○";
+                        row.querySelector("span").style.color = "#94a3b8";
+                    }
+                };
+                listEl.appendChild(row);
+            });
+
+            document.getElementById("batchLoadConfirm").onclick = function () {
+                var selected = Object.values(selectedSet);
+                if (selected.length === 0) {
+                    alert("请至少选择一名学生");
+                    return;
+                }
+                selected.forEach(function (s) {
+                    addBatchStudentRow(s);
+                });
+                overlay.remove();
+            };
+        }).catch(function () {
+            var listEl = document.getElementById("batchLoadList");
+            if (listEl) listEl.innerHTML = '<div style="color:#dc2626;text-align:center;padding:20px;">加载失败，请检查后端连接</div>';
+        });
+    }
+
+    function escapeHtml(str) {
+        return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    async function onBatchGenerate() {
+        var students = getBatchStudents();
+        if (students.length === 0) {
+            alert("请先在批量表格中添加至少一名学生");
+            return;
+        }
+
+        var apiKey = await AC.getApiKey();
+        if (!apiKey) { alert("请先配置 DeepSeek API Key"); return; }
+
+        // 收集共享字段
+        var sharedFormData = MODULE.getFormData();
+        // 在批量模式下，学生姓名使用表格中的，gender/grade/subject会被每个学生覆盖
+        // 验证共享必填项
+        var knowledge = (document.getElementById("knowledge").value || "").trim();
+        if (!knowledge) {
+            alert("请填写「本节课内容 / 核心知识点」");
+            return;
+        }
+        var selectedHighlights = Array.from(document.querySelectorAll(".highlight-cb:checked")).map(function (cb) { return cb.value; });
+        if (!selectedHighlights.length) {
+            alert("请至少勾选 1 个学生优点");
+            return;
+        }
+        var selectedWeak = Array.from(document.querySelectorAll(".weak-cb:checked")).map(function (cb) { return cb.value; });
+        if (!selectedWeak.length) {
+            alert("请至少勾选 1 个学生缺点");
+            return;
+        }
+
+        // 构建共享数据
+        var shared = {
+            date: sharedFormData.date,
+            knowledge: sharedFormData.knowledge,
+            homework: sharedFormData.homework,
+            nextFocus: sharedFormData.nextFocus,
+            correctness: sharedFormData.correctness,
+            selectedHighlights: sharedFormData.selectedHighlights,
+            selectedWeak: sharedFormData.selectedWeak,
+            selectedSuggestion: sharedFormData.selectedSuggestion,
+            shouldGenerateSuggestion: sharedFormData.shouldGenerateSuggestion,
+            realNotes: sharedFormData.realNotes,
+            realNotesList: sharedFormData.realNotesList,
+            selectedEncouragement: sharedFormData.selectedEncouragement,
+            greetingTarget: sharedFormData.greetingTarget,
+            greetingTime: sharedFormData.greetingTime,
+            enableGreeting: sharedFormData.enableGreeting,
+            stage_records: sharedFormData.stage_records,
+        };
+
+        // 显示进度卡片
+        var progressCard = document.getElementById("batchProgressCard");
+        var resultsCard = document.getElementById("batchResultsCard");
+        var progressBar = document.getElementById("batchProgressBar");
+        var progressText = document.getElementById("batchProgressText");
+        var progressList = document.getElementById("batchProgressList");
+        var genBtn = document.getElementById("generateBtn");
+
+        if (progressCard) progressCard.style.display = "";
+        if (resultsCard) resultsCard.style.display = "none";
+        if (genBtn) { genBtn.disabled = true; genBtn.innerText = "⚡ 批量生成中..."; }
+
+        // 初始化进度列表
+        if (progressList) {
+            progressList.innerHTML = students.map(function (s, i) {
+                return '<div class="batch-progress-item running" id="bpItem' + i + '">' +
+                    '<span class="bp-icon">⏳</span>' +
+                    '<span>' + (i + 1) + '/' + students.length + ' ' + escapeHtml(s.name) + '</span>' +
+                    '<span style="margin-left:auto;font-size:0.75rem;color:#64748b;">等待中</span>' +
+                '</div>';
+            }).join("");
+        }
+
+        try {
+            var temperature = PM.getTemperatureByMode()[0];
+            var result = await AC.batchGenerate(students, shared, temperature);
+
+            // 后处理每个结果
+            result.results.forEach(function (r) {
+                r._processed = false;
+                if (r.ok && r.content) {
+                    try {
+                        var studentFormData = Object.assign({}, shared, {
+                            studentName: r.student,
+                            gender: students[r.index] ? students[r.index].gender : "男",
+                            grade: students[r.index] ? students[r.index].grade : "初中",
+                            subject: students[r.index] ? students[r.index].subject : "数学",
+                        });
+                        r.content = PP.process(r.content, studentFormData);
+
+                        // 添加问候语
+                        if (studentFormData.enableGreeting) {
+                            var greeting = r.student + studentFormData.greetingTarget + studentFormData.greetingTime +
+                                "好，这是" + r.student + formatDateForTitle(studentFormData.date) + studentFormData.subject + "课程反馈";
+                            r.content = greeting + "\n" + r.content;
+                        }
+
+                        // 保存历史
+                        saveFeedbackHistoryEntry(r.content, studentFormData);
+                        r._processed = true;
+                    } catch (e) {
+                        r.content = r.content || "";
+                        r._processed = true;
+                    }
+                }
+            });
+
+            // 更新进度列表
+            result.results.forEach(function (r) {
+                var itemEl = document.getElementById("bpItem" + r.index);
+                if (itemEl) {
+                    if (r.ok) {
+                        itemEl.className = "batch-progress-item done";
+                        itemEl.querySelector(".bp-icon").innerText = "✅";
+                        itemEl.querySelector("span:last-child").innerText = "完成";
+                    } else {
+                        itemEl.className = "batch-progress-item error";
+                        itemEl.querySelector(".bp-icon").innerText = "❌";
+                        itemEl.querySelector("span:last-child").innerText = r.error || "失败";
+                    }
+                }
+            });
+
+            // 更新进度条
+            if (progressBar) progressBar.style.width = "100%";
+            if (progressText) progressText.innerText = "完成 " + result.ok_count + "/" + result.total + " 名学生";
+
+            // 显示结果
+            renderBatchResults(result);
+
+        } catch (e) {
+            if (progressText) progressText.innerText = "批量生成失败：" + (e.message || "未知错误");
+            if (progressBar) progressBar.style.background = "#ef4444";
+            alert("批量生成失败：" + (e.message || "未知错误"));
+        } finally {
+            if (genBtn) {
+                genBtn.disabled = false;
+                genBtn.innerText = "✨ 批量生成反馈（" + students.length + "名学生）";
+            }
+        }
+    }
+
+    function renderBatchResults(result) {
+        var resultsCard = document.getElementById("batchResultsCard");
+        var resultsList = document.getElementById("batchResultsList");
+        var summary = document.getElementById("batchResultsSummary");
+
+        if (!resultsCard || !resultsList) return;
+        resultsCard.style.display = "";
+
+        if (summary) {
+            summary.innerText = "（成功 " + result.ok_count + "/" + result.total + "）";
+            summary.style.color = result.ok_count === result.total ? "#166534" : "#d97706";
+        }
+
+        resultsList.innerHTML = result.results.map(function (r, i) {
+            var student = batchStudents[r.index] || {};
+            var meta = (student.gender || "男") + " · " + (student.grade || "") + " · " + (student.subject || "");
+            if (r.ok) {
+                return '<div class="batch-result-item" id="batchResult' + i + '">' +
+                    '<div class="batch-result-header">' +
+                        '<span class="batch-result-student">' + escapeHtml(r.student) +
+                            ' <span class="student-meta">' + escapeHtml(meta) + '</span></span>' +
+                        '<div class="batch-result-actions">' +
+                            '<button class="copy-btn" style="padding:4px 12px;font-size:0.75rem;" onclick="App.ui.copyBatchResult(' + i + ')">📋 复制</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="batch-result-content" contenteditable="true">' + escapeHtml(r.content) + '</div>' +
+                '</div>';
+            } else {
+                return '<div class="batch-result-item error-item">' +
+                    '<div class="batch-result-header">' +
+                        '<span class="batch-result-student">' + escapeHtml(r.student) +
+                            ' <span class="student-meta">' + escapeHtml(meta) + '</span></span>' +
+                    '</div>' +
+                    '<div class="batch-result-error">❌ 生成失败：' + escapeHtml(r.error || "未知错误") + '</div>' +
+                '</div>';
+            }
+        }).join("");
+
+        // 滚动到结果区
+        resultsCard.scrollIntoView({behavior: "smooth", block: "center"});
+    }
+
+    MODULE.copyBatchResult = function (index) {
+        var el = document.getElementById("batchResult" + index);
+        if (!el) return;
+        var content = el.querySelector(".batch-result-content");
+        var text = content ? content.innerText : "";
+        if (text) {
+            navigator.clipboard.writeText(text).then(function () {
+                var btn = el.querySelector(".batch-result-actions .copy-btn");
+                if (btn) { btn.innerText = "✅ 已复制"; setTimeout(function () { btn.innerText = "📋 复制"; }, 1500); }
+            }).catch(function () { alert("复制失败"); });
+        }
+    };
+
     // ========== 初始化 ==========
 
     MODULE.init = function () {
@@ -824,6 +1279,15 @@
         document.getElementById("addEncouragementBtn").onclick = addEncouragement;
 
         document.getElementById("generateBtn").onclick = onGenerate;
+
+        // 批量模式
+        var batchCheckbox = document.getElementById("batchModeCheckbox");
+        if (batchCheckbox) batchCheckbox.onchange = toggleBatchMode;
+        var batchAddBtn = document.getElementById("batchAddStudentBtn");
+        if (batchAddBtn) batchAddBtn.onclick = MODULE.addBatchStudent;
+        var batchLoadBtn = document.getElementById("batchLoadSavedBtn");
+        if (batchLoadBtn) batchLoadBtn.onclick = showLoadSavedStudentsModal;
+
         // 连接检测 + 设置弹窗
         checkConnection();
         var saveSettingsBtn = document.getElementById("saveSettingsBtn");
@@ -851,7 +1315,6 @@
                 var vals = _getInputRowValues();
                 if (vals) {
                     MODULE.addStageRecord(vals.grade, vals.subject, vals.score, vals.notes);
-                    // 清空输入
                     var row = document.querySelector(".stage-record-row:not(.existing)");
                     if (row) {
                         var inputs = row.querySelectorAll("input, select");
