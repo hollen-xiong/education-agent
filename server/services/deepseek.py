@@ -45,7 +45,7 @@ def validate_api_key(api_key):
         response = requests.get(
             f"{DEEPSEEK_BASE_URL}/models",
             headers={"Authorization": f"Bearer {api_key}"},
-            timeout=15,
+            timeout=10,
         )
         if response.ok:
             return {"ok": True, "message": "API Key 有效"}
@@ -53,5 +53,5 @@ def validate_api_key(api_key):
             return {"ok": False, "message": f"API Key 无效 ({response.status_code})，请检查后重试"}
         else:
             return {"ok": True, "message": f"无法验证 ({response.status_code})，已保存但建议测试"}
-    except requests.RequestException:
+    except Exception:
         return {"ok": True, "message": "网络不通，已保存但无法在线验证"}
