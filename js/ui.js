@@ -1373,6 +1373,26 @@
         var loadPresetBtn = document.getElementById("loadPresetBtn");
         if (loadPresetBtn) loadPresetBtn.onclick = loadPreset;
 
+        // 物理知识点预设
+        renderKnowledgePresets();
+        function renderKnowledgePresets() {
+            var select = document.getElementById("knowledgePreset");
+            var datalist = document.getElementById("knowledgeDatalist");
+            var presets = C.PHYSICS_KNOWLEDGE_PRESETS || [];
+            if (select) {
+                select.innerHTML = '<option value="">📥 物理知识点（' + presets.length + '个）</option>';
+                presets.forEach(function (k) {
+                    var opt = document.createElement("option");
+                    opt.value = k;
+                    opt.textContent = k;
+                    select.appendChild(opt);
+                });
+            }
+            if (datalist) {
+                datalist.innerHTML = presets.map(function (k) { return '<option value="' + k + '">'; }).join("");
+            }
+        }
+
         // 批量模式
         var batchCheckbox = document.getElementById("batchModeCheckbox");
         if (batchCheckbox) batchCheckbox.onchange = toggleBatchMode;

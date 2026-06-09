@@ -180,8 +180,14 @@
             </div>
             <div class="field-group">
                 <label>📖 本节课内容 / 核心知识点 <span class="required-mark">必填</span></label>
-                <input type="text" id="knowledge" placeholder="例: 光电效应 / 理想气体状态方程 / 导数单调性" autocomplete="off">
-                <div class="hint">AI 会根据年级 + 知识点自动扩展典型子内容。</div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="knowledge" placeholder="例: 光电效应 / 理想气体状态方程 / 导数单调性" autocomplete="off" list="knowledgeDatalist" style="flex:1;min-width:200px;">
+                    <datalist id="knowledgeDatalist"></datalist>
+                    <select id="knowledgePreset" style="width:auto;min-width:140px;font-size:0.82rem;" onchange="document.getElementById('knowledge').value=this.value;this.value='';">
+                        <option value="">📥 物理知识点</option>
+                    </select>
+                </div>
+                <div class="hint">AI 会根据年级 + 知识点自动扩展典型子内容。右侧下拉可选物理常见知识点快速填入。</div>
             </div>
         </div>
 
