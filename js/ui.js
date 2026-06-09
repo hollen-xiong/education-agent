@@ -970,7 +970,7 @@
             var tr = document.createElement("tr");
             tr.innerHTML =
                 '<td class="batch-row-num">' + (i + 1) + '</td>' +
-                '<td><input type="text" class="batch-name" value="' + escapeAttr(s.name) + '" placeholder="学生姓名" data-idx="' + i + '"></td>' +
+                '<td><input type="text" class="batch-name" value="' + escapeHtml(s.name) + '" placeholder="学生姓名" data-idx="' + i + '"></td>' +
                 '<td><select class="batch-gender" data-idx="' + i + '">' +
                     '<option value="男"' + (s.gender === "男" ? ' selected' : '') + '>男</option>' +
                     '<option value="女"' + (s.gender === "女" ? ' selected' : '') + '>女</option>' +
@@ -1009,10 +1009,6 @@
         return subs.map(function (s) {
             return '<option value="' + s + '"' + (s === selected ? ' selected' : '') + '>' + s + '</option>';
         }).join("");
-    }
-
-    function escapeAttr(str) {
-        return String(str || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
     MODULE.removeBatchStudent = function (index) {
@@ -1103,7 +1099,7 @@
                 row.innerHTML =
                     '<div class="student-info">' +
                         '<div class="student-name">' + escapeHtml(s.name) + '</div>' +
-                        '<div class="student-detail">' + (s.gender || "男") + ' · ' + (s.grade || "初中") + ' · ' + (s.subject || "数学") + '</div>' +
+                        '<div class="student-detail">' + escapeHtml(s.gender || "男") + ' · ' + escapeHtml(s.grade || "初中") + ' · ' + escapeHtml(s.subject || "数学") + '</div>' +
                     '</div>' +
                     '<span style="font-size:1.2rem;color:#94a3b8;">○</span>';
                 row.onclick = function () {
@@ -1140,7 +1136,7 @@
     }
 
     function escapeHtml(str) {
-        return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     }
 
     async function onBatchGenerate() {
