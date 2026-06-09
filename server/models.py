@@ -16,6 +16,7 @@ class Student(db.Model):
     subject = db.Column(db.String(10), default="数学")
     notes = db.Column(db.Text, default="")
     _tags = db.Column("tags", db.Text, default="[]")
+    _stage_records = db.Column("stage_records", db.Text, default="[]")
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
@@ -35,6 +36,17 @@ class Student(db.Model):
     def tags(self, value):
         self._tags = json.dumps(value or [], ensure_ascii=False)
 
+    @property
+    def stage_records(self):
+        try:
+            return json.loads(self._stage_records or "[]")
+        except (json.JSONDecodeError, TypeError):
+            return []
+
+    @stage_records.setter
+    def stage_records(self, value):
+        self._stage_records = json.dumps(value or [], ensure_ascii=False)
+
     def to_dict(self, include_sessions=False):
         result = {
             "id": self.id,
@@ -44,6 +56,7 @@ class Student(db.Model):
             "subject": self.subject,
             "notes": self.notes,
             "tags": self.tags,
+            "stage_records": self.stage_records,
             "session_count": self.sessions.count(),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

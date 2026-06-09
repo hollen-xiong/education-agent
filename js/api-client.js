@@ -330,8 +330,49 @@
     };
 
     MODULE.autoCleanup = async function () {
-        // 后端 SQLite 自动管理空间
         return MODULE.getStorageReport();
+    };
+
+    // ========== 导入导出 ==========
+
+    MODULE.exportAll = async function () {
+        try {
+            var resp = await fetch(baseUrl() + "/api/students/export");
+            if (!resp.ok) throw new Error("导出失败");
+            var blob = await resp.blob();
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url;
+            a.download = "jiaopei_export_" + new Date().toISOString().slice(0, 10) + ".json";
+            a.click();
+            URL.revokeObjectURL(url);
+            return true;
+        } catch (e) {
+            console.warn("[api-client] exportAll 失败:", e.message);
+            throw e;
+        }
+    };
+
+    MODULE.importAll = async function (file) {
+        try {
+            var text = await new Promise(function (resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function () { resolve(reader.result); };
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+            var data = JSON.parse(text);
+            var resp = await fetch(baseUrl() + "/api/students/import", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            if (!resp.ok) throw new Error("导入失败");
+            return await resp.json();
+        } catch (e) {
+            console.warn("[api-client] importAll 失败:", e.message);
+            throw e;
+        }
     };
 
     window.App.apiClient = MODULE;

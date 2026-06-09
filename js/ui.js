@@ -230,6 +230,91 @@
         return PP.getRealNotesList(oldInput ? oldInput.value : "");
     }
 
+    // ========== 阶段成绩 ==========
+
+    MODULE.addStageRecord = function (grade, subject, score, notes) {
+        var area = document.getElementById("stageRecordsArea");
+        if (!area) return;
+        var row = document.createElement("div");
+        row.className = "stage-record-row existing";
+        row.innerHTML =
+            '<span class="stage-tag">' + (grade || "") + '</span>' +
+            '<span class="stage-tag">' + (subject || "") + '</span>' +
+            '<span class="stage-tag score">' + (score || "-") + '分</span>' +
+            '<span class="stage-notes-text">' + (notes || "") + '</span>' +
+            '<button class="mini-memory-btn danger" onclick="this.parentElement.remove()" style="padding:2px 8px;">✕</button>';
+        area.appendChild(row);
+    };
+
+    function _getInputRowValues() {
+        var row = document.querySelector(".stage-record-row:not(.existing)");
+        if (!row) return null;
+        var grade = (row.querySelector(".stage-grade") || {}).value || "";
+        var subject = (row.querySelector(".stage-subject") || {}).value || "";
+        var score = (row.querySelector(".stage-score") || {}).value || "";
+        var notes = (row.querySelector(".stage-notes") || {}).value || "";
+        if (!grade) return null;
+        return { grade: grade, subject: subject || "数学", score: score ? parseInt(score) : null, notes: notes };
+    }
+
+    function _collectStageRecords() {
+        var records = [];
+        document.querySelectorAll("#stageRecordsArea .stage-record-row.existing").forEach(function (row) {
+            var tags = row.querySelectorAll(".stage-tag");
+            if (tags.length >= 3) {
+                var grade = (tags[0] || {}).textContent || "";
+                var subject = (tags[1] || {}).textContent || "";
+                var scoreText = (tags[2] || {}).textContent || "";
+                var score = parseInt(scoreText);
+                var notesEl = row.querySelector(".stage-notes-text");
+                var notes = notesEl ? notesEl.textContent : "";
+                if (grade) {
+                    records.push({
+                        grade: grade,
+                        subject: subject || "数学",
+                        score: isNaN(score) ? null : score,
+                        notes: notes || ""
+                    });
+                }
+            }
+        });
+        return records;
+    }
+
+    /** 渲染已有阶段成绩 */
+    MODULE.renderStageRecords = function (records) {
+        var area = document.getElementById("stageRecordsArea");
+        if (!area) return;
+        // 清除已有记录行（保留输入行）
+        area.querySelectorAll(".stage-record-row.existing").forEach(function (r) { r.remove(); });
+        (records || []).forEach(function (r) {
+            MODULE.addStageRecord(r.grade, r.subject, r.score, r.notes);
+        });
+    };
+
+    // ========== 导入导出 ==========
+
+    async function exportData() {
+        try {
+            await AC.exportAll();
+        } catch (e) {
+            alert("导出失败：" + (e.message || "未知错误"));
+        }
+    }
+
+    async function importData(file) {
+        try {
+            var result = await AC.importAll(file);
+            alert("✅ " + result.message);
+            // 刷新学生列表
+            if (window.App.students && window.App.students.renderDropdown) {
+                window.App.students.renderDropdown();
+            }
+        } catch (e) {
+            alert("导入失败：" + (e.message || "未知错误"));
+        }
+    }
+
     MODULE.getFormData = function () {
         var studentName = (document.getElementById("studentName").value || "").trim() || "这位同学";
         var gender = document.getElementById("studentGender").value;
@@ -267,7 +352,8 @@
             selectedSuggestion: selectedSuggestion, shouldGenerateSuggestion: shouldGenerateSuggestion,
             realNotes: realNotes, realNotesList: realNotesList,
             selectedEncouragement: selectedEncouragement,
-            greetingTarget: greetingTarget, greetingTime: greetingTime, enableGreeting: enableGreeting
+            greetingTarget: greetingTarget, greetingTime: greetingTime, enableGreeting: enableGreeting,
+            stage_records: _collectStageRecords()
         };
     };
 
@@ -742,6 +828,38 @@
         checkConnection();
         var saveSettingsBtn = document.getElementById("saveSettingsBtn");
         if (saveSettingsBtn) saveSettingsBtn.onclick = saveSettings;
+
+        // 导入导出按钮
+        var exportBtn = document.getElementById("exportDataBtn");
+        if (exportBtn) exportBtn.onclick = exportData;
+        var importBtn = document.getElementById("importDataBtn");
+        var importFile = document.getElementById("importFileInput");
+        if (importBtn && importFile) {
+            importBtn.onclick = function () { importFile.click(); };
+            importFile.onchange = function () {
+                if (importFile.files && importFile.files[0]) {
+                    importData(importFile.files[0]);
+                    importFile.value = "";
+                }
+            };
+        }
+
+        // 阶段成绩 "添加" 按钮事件
+        var addSrBtn = document.querySelector("#stageRecordsArea .mini-memory-btn");
+        if (addSrBtn) {
+            addSrBtn.onclick = function () {
+                var vals = _getInputRowValues();
+                if (vals) {
+                    MODULE.addStageRecord(vals.grade, vals.subject, vals.score, vals.notes);
+                    // 清空输入
+                    var row = document.querySelector(".stage-record-row:not(.existing)");
+                    if (row) {
+                        var inputs = row.querySelectorAll("input, select");
+                        inputs.forEach(function (inp) { if (inp.type !== "button") inp.value = ""; });
+                    }
+                }
+            };
+        }
         document.getElementById("copyFeedbackBtn").onclick = copyFeedback;
         document.getElementById("clearHistoryBtn").onclick = clearFeedbackHistory;
 

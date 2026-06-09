@@ -916,6 +916,51 @@ input[type="range"] {
     color: #dc2626;
 }
 
+/* ----- Stage Records ----- */
+.stage-records-area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.stage-record-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.stage-record-row input,
+.stage-record-row select {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    border-radius: 12px;
+}
+
+.stage-tag {
+    display: inline-block;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    color: #334155;
+}
+
+.stage-tag.score {
+    background: #dbeafe;
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.stage-notes-text {
+    font-size: 0.78rem;
+    color: #64748b;
+    flex: 1;
+}
+
 /* ----- Responsive ----- */
 @media (max-width: 640px) {
     .grid-3cols, .grid-4cols {

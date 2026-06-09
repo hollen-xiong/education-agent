@@ -13,6 +13,19 @@ def init_db(app):
     db.init_app(app)
     with app.app_context():
         db.create_all()
+        # 迁移：添加 stage_records 列（如果不存在）
+        _migrate_add_column(app, "students", "stage_records", "TEXT DEFAULT '[]'")
+
+
+def _migrate_add_column(app, table, column, col_def):
+    """安全添加列——忽略已存在错误"""
+    try:
+        db.session.execute(
+            db.text(f"ALTER TABLE {table} ADD COLUMN {column} {col_def}")
+        )
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 
 def seed_defaults(app):

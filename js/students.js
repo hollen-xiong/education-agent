@@ -68,6 +68,9 @@
         setSelectValueIfExists("subject", profile.subject);
         var notesEl = document.getElementById("studentNotes");
         if (notesEl) notesEl.value = profile.notes || "";
+        if (window.App.ui && window.App.ui.renderStageRecords) {
+            window.App.ui.renderStageRecords(profile.stage_records || []);
+        }
         MODULE.renderSessionHistory(profile.name);
         updateStudentMemoryButtons();
         MODULE.renderDropdown();
@@ -178,6 +181,26 @@
         input.setAttribute("aria-expanded", "false");
     }
 
+    function _collectStageRecordsFromUI() {
+        var records = [];
+        document.querySelectorAll("#stageRecordsArea .stage-record-row.existing").forEach(function (row) {
+            var tags = row.querySelectorAll(".stage-tag");
+            if (tags.length >= 3) {
+                var grade = (tags[0] || {}).textContent || "";
+                var subject = (tags[1] || {}).textContent || "";
+                var scoreText = (tags[2] || {}).textContent || "";
+                var score = parseInt(scoreText);
+                var notesEl = row.querySelector(".stage-notes-text");
+                var n = notesEl ? notesEl.textContent : "";
+                if (grade) records.push({
+                    grade: grade, subject: subject || "数学",
+                    score: isNaN(score) ? null : score, notes: n || ""
+                });
+            }
+        });
+        return records;
+    }
+
     // ========== 保存 & 删除 ==========
     MODULE.upsertProfile = async function (showAlert) {
         var name = normalizeStudentName((document.getElementById("studentName") || {}).value || "");
@@ -195,6 +218,7 @@
         var profile = {
             name: name, gender: gender, grade: grade, subject: subject, notes: notes,
             tags: existing ? (existing.tags || []) : [],
+            stage_records: _collectStageRecordsFromUI(),
         };
 
         await AC.saveStudents([profile]);
