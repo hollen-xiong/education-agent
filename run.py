@@ -1,8 +1,9 @@
 """
-run.py — 教培助手启动入口（支持 PyInstaller 打包）
+run.py — 一对一反馈助手 启动入口（支持 PyInstaller 打包）
 """
 import os
 import sys
+import signal
 import webbrowser
 
 # 修复 Windows 控制台 GBK 编码问题
@@ -33,16 +34,37 @@ if IS_FROZEN:
 
 from server.config import HOST, PORT
 
+
+def _graceful_shutdown(signum, frame):
+    print("\n")
+    print("  " + "=" * 44)
+    print("  |  服务器已停止。                         |")
+    print("  |  关闭此窗口即可。                       |")
+    print("  " + "=" * 44)
+    print("\n")
+    sys.exit(0)
+
+
 if __name__ == "__main__":
     from server.app import create_app
 
     app = create_app(frozen_dir=BUNDLE_DIR if IS_FROZEN else None)
 
-    print(f"\n  教培助手 v3.1")
-    print(f"  本地访问: http://{HOST}:{PORT}")
-    if IS_FROZEN:
-        print(f"  数据库:   {os.environ.get('JIAOPEI_DB_PATH', '')}")
-    print(f"  按 Ctrl+C 停止\n")
+    # 注册 Ctrl+C 信号处理
+    signal.signal(signal.SIGINT, _graceful_shutdown)
+    signal.signal(signal.SIGTERM, _graceful_shutdown)
+
+    print("\n")
+    print("  " + "=" * 44)
+    print("  |                                           |")
+    print("  |     一对一反馈助手 v3.1                    |")
+    print("  |                                           |")
+    print(f"  |  浏览器访问: http://{HOST}:{PORT}              |")
+    print("  |                                           |")
+    print("  |  按 Ctrl+C 或 关闭此窗口 即可停止          |")
+    print("  |                                           |")
+    print("  " + "=" * 44)
+    print("\n")
 
     # 自动打开浏览器
     try:
@@ -53,8 +75,6 @@ if __name__ == "__main__":
     # 用 waitress 生产模式启动
     try:
         from waitress import serve
-        print("  [Waitress]")
         serve(app, host=HOST, port=PORT)
     except ImportError:
-        print("  [Flask]")
         app.run(host=HOST, port=PORT, debug=False)
