@@ -45,7 +45,16 @@
 
     <!-- ① 学生信息 -->
     <div class="card required-section" data-required-group="student">
-        <div class="card-header">① 学生信息 <span class="required-mark">必填</span></div>
+        <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <span>① 学生信息 <span class="required-mark">必填</span></span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:0.78rem;color:#64748b;">📥 预设模板:</span>
+                <select id="presetSelect" style="width:auto;min-width:180px;font-size:0.78rem;padding:4px 8px;">
+                    <option value="">-- 选择学生预设 --</option>
+                </select>
+                <button type="button" class="mini-memory-btn" id="loadPresetBtn" style="font-size:0.75rem;">加载</button>
+            </div>
+        </div>
         <div class="section-helper" id="studentSectionHelper">先把学生身份填清楚，后面生成时会继续沿用原来的性别、学段、科目逻辑。</div>
         <div class="section-helper" id="batchSectionHelper" style="display:none;">在下方表格中填写多位学生的信息，公共的课堂内容和优缺点将应用于所有学生。</div>
 

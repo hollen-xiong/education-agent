@@ -802,6 +802,94 @@
         }
     }
 
+    // ========== 学生预设 ==========
+
+    function renderPresetOptions() {
+        var select = document.getElementById("presetSelect");
+        if (!select) return;
+        var presets = C.STUDENT_PRESETS || [];
+        select.innerHTML = '<option value="">-- 选择学生预设（' + presets.length + '个） --</option>';
+        // 按年级分组
+        var groups = {"小学": [], "初中": [], "高中": []};
+        presets.forEach(function (p, i) {
+            var g = p.grade || "";
+            if (g === "小学") groups["小学"].push({idx: i, label: p.label});
+            else if (g.indexOf("初一") >= 0 || g.indexOf("初二") >= 0 || g.indexOf("初三") >= 0) groups["初中"].push({idx: i, label: p.label});
+            else groups["高中"].push({idx: i, label: p.label});
+        });
+        ["小学", "初中", "高中"].forEach(function (group) {
+            if (groups[group].length === 0) return;
+            var optgroup = document.createElement("optgroup");
+            optgroup.label = group;
+            groups[group].forEach(function (item) {
+                var opt = document.createElement("option");
+                opt.value = item.idx;
+                opt.textContent = item.label;
+                optgroup.appendChild(opt);
+            });
+            select.appendChild(optgroup);
+        });
+    }
+
+    function loadPreset() {
+        var select = document.getElementById("presetSelect");
+        if (!select || select.value === "") return;
+        var idx = parseInt(select.value);
+        var presets = C.STUDENT_PRESETS || [];
+        var p = presets[idx];
+        if (!p) return;
+
+        // 填充学生信息
+        var nameEl = document.getElementById("studentName");
+        var genderEl = document.getElementById("studentGender");
+        var gradeEl = document.getElementById("grade");
+        var subjectEl = document.getElementById("subject");
+        var knowledgeEl = document.getElementById("knowledge");
+        var homeworkEl = document.getElementById("homework");
+
+        if (nameEl) nameEl.value = p.name || "";
+        if (genderEl) genderEl.value = p.gender || "男";
+        if (gradeEl) gradeEl.value = p.grade || "初中";
+        if (subjectEl) subjectEl.value = p.subject || "数学";
+        if (knowledgeEl) knowledgeEl.value = p.knowledge || "";
+        if (homeworkEl) homeworkEl.value = p.homework || "";
+
+        // 填充真实情况
+        var realNotes = p.realNotes || [];
+        for (var i = 1; i <= 4; i++) {
+            var noteEl = document.getElementById("realNote" + i);
+            if (noteEl) noteEl.value = realNotes[i - 1] || "";
+        }
+
+        // 设置语气
+        if (p.tone) {
+            var toneRadio = document.querySelector('input[name="toneStyle"][value="' + p.tone + '"]');
+            if (toneRadio) { toneRadio.checked = true; bindRadioStyle(); }
+        }
+
+        // 勾选优点
+        var highlightSet = {};
+        (p.highlights || []).forEach(function (h) { highlightSet[h] = true; });
+        document.querySelectorAll(".highlight-cb").forEach(function (cb) {
+            cb.checked = !!highlightSet[cb.value];
+        });
+
+        // 勾选缺点
+        var weakSet = {};
+        (p.weak || []).forEach(function (w) { weakSet[w] = true; });
+        document.querySelectorAll(".weak-cb").forEach(function (cb) {
+            cb.checked = !!weakSet[cb.value];
+        });
+
+        // 刷新 checkbox 样式
+        bindCheckboxStyle();
+        clearRequiredErrors();
+
+        // 滚动到表单顶部
+        document.getElementById("studentName").focus();
+        select.value = "";
+    }
+
     // ========== 批量模式 ==========
 
     var batchStudents = [];  // [{name, gender, grade, subject}]
@@ -1279,6 +1367,11 @@
         document.getElementById("addEncouragementBtn").onclick = addEncouragement;
 
         document.getElementById("generateBtn").onclick = onGenerate;
+
+        // 学生预设
+        renderPresetOptions();
+        var loadPresetBtn = document.getElementById("loadPresetBtn");
+        if (loadPresetBtn) loadPresetBtn.onclick = loadPreset;
 
         // 批量模式
         var batchCheckbox = document.getElementById("batchModeCheckbox");
